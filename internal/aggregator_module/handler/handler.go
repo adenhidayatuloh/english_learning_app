@@ -20,10 +20,11 @@ type AggregateHandler struct {
 // GetCourseByNameAndCategory retrieves a course by name and category
 func (h *AggregateHandler) GetCourseByNameAndCategory(c *gin.Context) {
 	var courseRequest dto.GetContentProgressRequest
+	userID := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 	courseRequest.CourseName = c.Query("coursename")
 	courseRequest.CourseCategory = c.Query("coursecategory")
 
-	data, err := h.AggregateService.GetCourseDetailAndProgress(&courseRequest)
+	data, err := h.AggregateService.GetCourseDetailAndProgress(&courseRequest, userID)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
@@ -48,5 +49,22 @@ func (h *AggregateHandler) GetALessonDetail(c *gin.Context) {
 		return
 	}
 
+	c.JSON(common.BuildResponse(http.StatusOK, data))
+}
+
+func (h *AggregateHandler) GetExerciseByID(c *gin.Context) {
+	exerciseIDParam := c.Param("exerciseID")
+	exerciseID, err := uuid.Parse(exerciseIDParam)
+	errParse := errs.NewBadRequest("Invalid exercise ID format")
+	if err != nil {
+		c.JSON(errParse.StatusCode(), errParse)
+		return
+	}
+
+	data, err2 := h.AggregateService.GetExerciseDetail(exerciseID)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }

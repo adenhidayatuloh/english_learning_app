@@ -8,6 +8,7 @@ import (
 )
 
 type AggregateService interface {
-	GetCourseDetailAndProgress(courseRequest *dto.GetContentProgressRequest) (*dto.CourseData, errs.MessageErr)
+	GetCourseDetailAndProgress(courseRequest *dto.GetContentProgressRequest, userID uuid.UUID) (*dto.CourseData, errs.MessageErr)
 	GetALessonDetail(lessonID uuid.UUID, userID uuid.UUID) (*dto.GetALessonResponse, errs.MessageErr)
+	GetExerciseDetail(exerciseID uuid.UUID) (*dto.ExerciseDetail, errs.MessageErr)
 }

@@ -6,6 +6,8 @@ import (
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -22,31 +24,24 @@ func NewProgressService(courseProgressRepo courseprogressrepository.CourseProgre
 	}
 }
 
-func (s *progressService) GetCourseProgress(userID, courseID string) (*dto.CourseProgressDTO, errs.MessageErr) {
-	userUUID, err := uuid.Parse(userID)
+func (s *progressService) GetCourseProgress(userID, courseID uuid.UUID) (*entity.CourseProgress, errs.MessageErr) {
+
+	courseProgress, err := s.courseProgressRepo.GetByUserAndCourse(userID, courseID)
 	if err != nil {
-		return nil, errs.NewBadRequest("invalid user_id format")
-	}
-	courseUUID, err := uuid.Parse(courseID)
-	if err != nil {
-		return nil, errs.NewBadRequest("invalid course_id format")
+		return nil, err
 	}
 
-	courseProgress, err2 := s.courseProgressRepo.GetByUserAndCourse(userUUID, courseUUID)
-	if err2 != nil {
-		return nil, err2
-	}
-
-	return &dto.CourseProgressDTO{
-		ID:                 courseProgress.ID,
-		CourseID:           courseProgress.CourseID,
-		ProgressPercentage: courseProgress.ProgressPercentage,
-		IsCompleted:        courseProgress.IsCompleted,
-		CreatedAt:          courseProgress.CreatedAt,
-		UpdatedAt:          courseProgress.UpdatedAt,
-	}, nil
+	return courseProgress, nil
 }
 
+//	return &dto.CourseProgressDTO{
+//		ID:                 courseProgress.ID,
+//		CourseID:           courseProgress.CourseID,
+//		ProgressPercentage: courseProgress.ProgressPercentage,
+//		IsCompleted:        courseProgress.IsCompleted,
+//		CreatedAt:          courseProgress.CreatedAt,
+//		UpdatedAt:          courseProgress.UpdatedAt,
+//	}, nil
 func (s *progressService) GetLessonProgress(userID, lessonID uuid.UUID) (*entity.LessonProgress, errs.MessageErr) {
 
 	lessonProgress, err := s.lessonProgressRepo.GetByUserAndLesson(userID, lessonID)
@@ -86,4 +81,38 @@ func (s *progressService) CreateLessonProgress(userID, lessonID uuid.UUID) (*ent
 		return nil, err
 	}
 	return lessonProgress, nil
+}
+
+func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (*entity.LessonProgress, errs.MessageErr) {
+	oldProgress, err := s.lessonProgressRepo.GetByUserAndLesson(payload.UserID, payload.LessonID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	newProgress := &entity.LessonProgress{
+		ID:                  oldProgress.ID,
+		LessonID:            payload.LessonID,
+		UserID:              payload.UserID,
+		IsVideoCompleted:    payload.IsVideoCompleted,
+		IsExerciseCompleted: payload.IsExerciseCompleted,
+		IsSummaryCompleted:  payload.IsSummaryCompleted,
+		UpdatedAt:           time.Now(),
+	}
+
+	response, err := s.lessonProgressRepo.UpdateLessonProgress(oldProgress, newProgress)
+
+	fmt.Print("Haloo")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+
+	// err := s.lessonProgressRepo.Create(lessonProgress)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return lessonProgress, nil
 }

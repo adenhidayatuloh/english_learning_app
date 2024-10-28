@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"english_app/internal/aggregator_module/dto"
 	courseDTO "english_app/internal/course_module/dto"
 	contentService "english_app/internal/course_module/service"
@@ -72,8 +73,8 @@ func (s *aggregatorService) GetALessonDetail(lessonID uuid.UUID, userID uuid.UUI
 	return response, nil
 
 }
-func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetContentProgressRequest) (*dto.CourseData, errs.MessageErr) {
-
+func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetContentProgressRequest, userID uuid.UUID) (*dto.CourseData, errs.MessageErr) {
+	totalCourseProgress := 0
 	getCourseRequest := &courseDTO.CourseRequest{
 		CourseName:     courseRequest.CourseName,
 		CourseCategory: courseRequest.CourseCategory,
@@ -95,23 +96,64 @@ func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetCon
 		Description: getCourse.Description,
 		ListLessons: make([]dto.Lesson, len(getALlLesson)),
 	}
-	progress := 50
-	totalCourseProgress := 0
 
 	for i, v := range getALlLesson {
+
+		progressLesson, err := s.ProgressService.GetLessonProgress(userID, v.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
 		ResponseData.ListLessons[i] = dto.Lesson{
 			IdLesson:    v.ID,
 			LessonsName: v.Name,
 			Description: v.Description,
-			Progress:    progress,
+			Progress:    progressLesson.ProgressPercentage,
 		}
 
-		totalCourseProgress = totalCourseProgress + progress
+		totalCourseProgress = totalCourseProgress + progressLesson.ProgressPercentage
 	}
 
 	totalCourseProgress = totalCourseProgress / len(getALlLesson)
 	ResponseData.Progress = totalCourseProgress
 
 	return ResponseData, nil
+
+}
+
+// GetExerciseDetail implements AggregateService.
+func (s *aggregatorService) GetExerciseDetail(exerciseID uuid.UUID) (*dto.ExerciseDetail, errs.MessageErr) {
+
+	exercise, err := s.GetExerciseByID(exerciseID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	quizResponse := make([]dto.QuizQuestion, len(exercise.Questions))
+	for i, question := range exercise.Questions {
+		var marshalAnswer []string
+		if err := json.Unmarshal(question.Options, &marshalAnswer); err != nil {
+
+			errUnmarshal := errs.NewBadRequest("Error on getting options")
+			return nil, errUnmarshal
+		}
+
+		quizResponse[i] = dto.QuizQuestion{
+			Question:      question.Question,
+			AnswerOptions: marshalAnswer,
+			CorrectAnswer: question.CorrectAnswer,
+		}
+	}
+	exerciseDetail := &dto.ExerciseDetail{
+		ExerciseID:       exercise.ID.String(),
+		ExerciseDuration: exercise.ExerciseDuration,
+		ExerciseExp:      exercise.ExerciseExp,
+		ExercisePoin:     exercise.ExercisePoin,
+		Quiz:             quizResponse,
+	}
+	// Membangun response dengan fungsi helper
+	return exerciseDetail, nil
 
 }

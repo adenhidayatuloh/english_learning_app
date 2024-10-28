@@ -11,6 +11,8 @@ import (
 	exercisepg "english_app/internal/course_module/repository/exercise_repository/exercise_pg"
 	lessonpg "english_app/internal/course_module/repository/lesson_repository/lesson_pg"
 	contentmanagementservice "english_app/internal/course_module/service"
+	"english_app/internal/progress_module/event"
+	progressHandler "english_app/internal/progress_module/handler"
 	courseProgressPG "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
 	lessonProgressPG "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
 	progressservice "english_app/internal/progress_module/service"
@@ -68,18 +70,18 @@ func main() {
 
 	//userHandler := userHandler.NewUserHandler(userService)
 
-	//progressHandler := progressHandler.NewProgressHandler(progressService)
+	progressHandler := progressHandler.NewProgressHandler(progressService)
 
 	// Route untuk mengambil course progress
 	//r.GET("/course-progress/:user_id/:course_id", authService.Authentication(), AggregateHandler.GetCourseByNameAndCategory)
 	// Route untuk mengambil lesson progress
-	//r.GET("/lesson-progress/:lesson_id", authService.Authentication(), progressHandler.GetLessonProgressHandler)
+	r.PUT("/api/update_progress_lesson/:lesson_id", authService.Authentication(), progressHandler.UpdateLessonProgress)
 	r.GET("/api/courses", authService.Authentication(), AggregateHandler.GetCourseByNameAndCategory)
 	r.GET("/api/lesson/:Lesson_ID", authService.Authentication(), AggregateHandler.GetALessonDetail)
-	// r.GET("/api/exercise/:exerciseID", authService.Authentication(), exerciseHandler.GetExerciseByID)
+	r.GET("/api/exercise/:exerciseID", authService.Authentication(), AggregateHandler.GetExerciseByID)
 	r.POST("/api/auth/register", authHandler.Register)
 	r.POST("/api/auth/login", authHandler.Login)
-	//go event.ConsumeUserCreated(db, kafkaTopic, progressService)
+	go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
 	r.Run()
 
 }

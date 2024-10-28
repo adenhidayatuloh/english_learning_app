@@ -9,7 +9,8 @@ import (
 )
 
 type ProgressService interface {
-	GetCourseProgress(userID, courseID string) (*dto.CourseProgressDTO, errs.MessageErr)
+	GetCourseProgress(userID, courseID uuid.UUID) (*entity.CourseProgress, errs.MessageErr)
 	GetLessonProgress(userID, lessonID uuid.UUID) (*entity.LessonProgress, errs.MessageErr)
 	CreateLessonProgress(userID, lessonID uuid.UUID) (*entity.LessonProgress, error)
+	UpdateLessonProgress(payload *dto.LessonProgressDTO) (*entity.LessonProgress, errs.MessageErr)
 }
