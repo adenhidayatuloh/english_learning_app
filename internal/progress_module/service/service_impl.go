@@ -6,7 +6,6 @@ import (
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +14,11 @@ import (
 type progressService struct {
 	courseProgressRepo courseprogressrepository.CourseProgressRepository
 	lessonProgressRepo lessonprogressrepository.LessonProgressRepository
+}
+
+// GetAllProgressByUserID implements ProgressService.
+func (s *progressService) GetAllProgressByUserID(userID uuid.UUID) ([]*entity.LessonProgress, errs.MessageErr) {
+	return s.lessonProgressRepo.GetAllProgressByUserID(userID)
 }
 
 func NewProgressService(courseProgressRepo courseprogressrepository.CourseProgressRepository, lessonProgressRepo lessonprogressrepository.LessonProgressRepository) ProgressService {
@@ -101,8 +105,6 @@ func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (
 	}
 
 	response, err := s.lessonProgressRepo.UpdateLessonProgress(oldProgress, newProgress)
-
-	fmt.Print("Haloo")
 
 	if err != nil {
 		return nil, err

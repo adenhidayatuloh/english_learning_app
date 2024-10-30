@@ -11,7 +11,6 @@ import (
 	exercisepg "english_app/internal/course_module/repository/exercise_repository/exercise_pg"
 	lessonpg "english_app/internal/course_module/repository/lesson_repository/lesson_pg"
 	contentmanagementservice "english_app/internal/course_module/service"
-	"english_app/internal/progress_module/event"
 	progressHandler "english_app/internal/progress_module/handler"
 	courseProgressPG "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
 	lessonProgressPG "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
@@ -79,9 +78,11 @@ func main() {
 	r.GET("/api/courses", authService.Authentication(), AggregateHandler.GetCourseByNameAndCategory)
 	r.GET("/api/lesson/:Lesson_ID", authService.Authentication(), AggregateHandler.GetALessonDetail)
 	r.GET("/api/exercise/:exerciseID", authService.Authentication(), AggregateHandler.GetExerciseByID)
+
+	r.GET("/api/courses/summary", authService.Authentication(), AggregateHandler.GetCourseProgressSummary)
 	r.POST("/api/auth/register", authHandler.Register)
 	r.POST("/api/auth/login", authHandler.Login)
-	go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
+	//go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
 	r.Run()
 
 }
@@ -103,4 +104,58 @@ func main() {
 // 	user.RegisterRoutes(r)
 
 // 	r.Run(":8080") // Menjalankan server di port 8080
+// }
+
+// Definisikan struktur data input
+// type Input struct {
+// 	Course   string `json:"course"`
+// 	Category string `json:"category"`
+// }
+
+// // Definisikan struktur data output yang diinginkan
+// type Output struct {
+// 	Course     string     `json:"course"`
+// 	Categories []Category `json:"categories"`
+// }
+
+// type Category struct {
+// 	Category string `json:"category"`
+// }
+
+// func groupByCourse(input []Input) []Output {
+// 	// Buat map untuk mengelompokkan data berdasarkan course
+// 	grouped := make(map[string][]Category)
+
+// 	for _, item := range input {
+// 		category := Category{Category: item.Category}
+// 		grouped[item.Course] = append(grouped[item.Course], category)
+// 	}
+
+// 	// Konversi map menjadi slice Output
+// 	var output []Output
+// 	for course, categories := range grouped {
+// 		output = append(output, Output{
+// 			Course:     course,
+// 			Categories: categories,
+// 		})
+// 	}
+// 	return output
+// }
+
+// func main() {
+// 	// Data input awal
+// 	input := []Input{
+// 		{Course: "speaking", Category: "b"},
+// 		{Course: "speaking", Category: "i"},
+// 		{Course: "writting", Category: "gampang"},
+// 		{Course: "writting", Category: "eazyy"},
+// 		// Tambahkan data lain jika diperlukan
+// 	}
+
+// 	// Proses data
+// 	output := groupByCourse(input)
+
+// 	// Konversi hasil output ke JSON dan cetak
+// 	result, _ := json.MarshalIndent(output, "", "  ")
+// 	fmt.Println(string(result))
 // }

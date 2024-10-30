@@ -12,6 +12,17 @@ type coursePostgres struct {
 	db *gorm.DB
 }
 
+// GetAll implements courserepository.CourseRepository.
+func (r *coursePostgres) GetAll() ([]*entity.Course, errs.MessageErr) {
+	var data []*entity.Course
+	err := r.db.Preload("Lessons").Find(&data).Debug().Error
+
+	if err != nil {
+		return nil, errs.NewNotFound("Courses not found")
+	}
+	return data, nil
+}
+
 func NewCourseRepository(db *gorm.DB) courserepository.CourseRepository {
 	return &coursePostgres{db: db}
 }

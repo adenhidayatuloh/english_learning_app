@@ -9,11 +9,17 @@ import (
 
 type CourseService interface {
 	GetCourseByNameAndCategory(courseName, courseCategory string) (*entity.Course, errs.MessageErr)
+	GetAllCourse() ([]*entity.Course, errs.MessageErr)
 }
 
 type courseService struct {
 	courseRepo courserepository.CourseRepository
 	lessonRepo lessonrepository.LessonRepository
+}
+
+// GetAllCourse implements CourseService.
+func (s *courseService) GetAllCourse() ([]*entity.Course, errs.MessageErr) {
+	return s.courseRepo.GetAll()
 }
 
 func NewCourseService(courseRepo courserepository.CourseRepository, lessonRepo lessonrepository.LessonRepository) CourseService {

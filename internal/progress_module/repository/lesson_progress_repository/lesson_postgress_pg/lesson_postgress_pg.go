@@ -16,6 +16,19 @@ type lessonProgressRepository struct {
 	db *gorm.DB
 }
 
+// GetAllProgressByUserID implements lessonprogressrepository.LessonProgressRepository.
+func (r *lessonProgressRepository) GetAllProgressByUserID(userID uuid.UUID) ([]*entity.LessonProgress, errs.MessageErr) {
+	var data []*entity.LessonProgress
+	if err := r.db.Find(&data).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+
+			return nil, errs.NewNotFound(fmt.Sprintf("Progress with user ID %s is not found", userID))
+		}
+		return nil, errs.NewBadRequest("Progress not found")
+	}
+	return data, nil
+}
+
 // UpdateLessonProgress implements lessonprogressrepository.LessonProgressRepository.
 func (r *lessonProgressRepository) UpdateLessonProgress(oldProgress *entity.LessonProgress, newProgress *entity.LessonProgress) (*entity.LessonProgress, errs.MessageErr) {
 

@@ -68,3 +68,16 @@ func (h *AggregateHandler) GetExerciseByID(c *gin.Context) {
 	}
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }
+
+func (h *AggregateHandler) GetCourseProgressSummary(c *gin.Context) {
+
+	userID := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
+
+	data, err2 := h.AggregateService.GetCourseProgressSummary(userID)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, data))
+}

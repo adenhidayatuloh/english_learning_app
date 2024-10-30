@@ -7,4 +7,5 @@ import (
 
 type CourseRepository interface {
 	FindByNameAndCategory(courseName, courseCategory string) (*entity.Course, errs.MessageErr)
+	GetAll() ([]*entity.Course, errs.MessageErr)
 }

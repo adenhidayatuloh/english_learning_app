@@ -65,3 +65,13 @@ type QuizQuestion struct {
 	AnswerOptions []string `json:"answer"`
 	CorrectAnswer int      `json:"correct_answer"`
 }
+
+type CourseDescriptionResponse struct {
+	Course           string                    `json:"course"`
+	Description      string                    `json:"description"`
+	CategoryProgress []CategoryProgresResponse `json:"progress"`
+}
+type CategoryProgresResponse struct {
+	Category           string `json:"category"`
+	ProgressPercentage int    `json:"progress_percentage"`
+}
