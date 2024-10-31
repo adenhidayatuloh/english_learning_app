@@ -12,6 +12,11 @@ import (
 type LessonService interface {
 	FindLessonByID(lessonID uuid.UUID) (*entity.Lesson, errs.MessageErr)
 	FindLessonByCourseID(courseID uuid.UUID) ([]*entity.Lesson, errs.MessageErr)
+
+	// Create(request dto.VideoPartRequest) (*dto.VideoPartResponse, errs.MessageErr)
+	// FindByID(id uuid.UUID) (*dto.VideoPartResponse, errs.MessageErr)
+	// Update(id uuid.UUID, request dto.VideoPartRequest) (*dto.VideoPartResponse, errs.MessageErr)
+	// Delete(id uuid.UUID) errs.MessageErr
 }
 
 type lessonService struct {
@@ -42,54 +47,4 @@ func (s *lessonService) FindLessonByID(lessonID uuid.UUID) (*entity.Lesson, errs
 
 	return lesson, nil
 
-	//progressLesson, err := s.progressService.GetLessonProgress(userID, lessonID.String())
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// Mapping VideoPart, ExercisePart, and SummaryPart to their DTOs
-	// videoDTOs := make([]dto.VideoDTO, len(lesson.Videos))
-	// for i, video := range lesson.Videos {
-	// 	videoDTOs[i] = dto.VideoDTO{
-	// 		VideoID:          video.ID,
-	// 		VideoTitle:       video.Title,
-	// 		VideoExp:         video.VideoExp,
-	// 		VideoPoint:       video.VideoPoin,
-	// 		VideoUrl:         video.URL,
-	// 		VideoDescription: video.Description,
-	// 	}
-	// }
-
-	// videoDTOs := dto.VideoDTO{
-	// 	VideoID:          lesson.Video.ID,
-	// 	VideoTitle:       lesson.Video.Title,
-	// 	VideoExp:         lesson.Video.VideoExp,
-	// 	VideoPoint:       lesson.Video.VideoPoin,
-	// 	VideoUrl:         lesson.Video.URL,
-	// 	VideoDescription: lesson.Video.Description,
-	// 	//IsCompleted:      progressLesson.IsVideoCompleted,
-	// }
-
-	// exerciseDTOs := dto.ExerciseDTO{
-	// 	ExerciseID:    lesson.Exercise.ID,
-	// 	ExerciseExp:   lesson.Exercise.ExerciseExp,
-	// 	ExercisePoint: lesson.Exercise.ExercisePoin,
-	// 	//IsCompleted:   progressLesson.IsExerciseCompleted,
-	// }
-
-	// summaryDTOs := dto.SummaryDTO{
-	// 	SummaryID:          lesson.Summary.ID,
-	// 	SummaryDescription: lesson.Summary.Description,
-	// 	//IsCompleted:        progressLesson.IsSummaryCompleted,
-	// }
-
-	// response := &dto.LessonDTO{
-	// 	LessonName: lesson.Name,
-	// 	Videos:     videoDTOs,
-	// 	Exercises:  exerciseDTOs,
-	// 	Summaries:  summaryDTOs,
-	// 	//TotalProgress: progressLesson.ProgressPercentage,
-	// }
-
-	//return response, nil
 }

@@ -15,7 +15,7 @@ type VideoPart struct {
 	VideoPoin   int       `gorm:"default:0" json:"video_poin"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
-	LessonID    uuid.UUID `gorm:"type:uuid;not null" json:"lesson_id"`
+	//LessonID    uuid.UUID `gorm:"type:uuid;not null" json:"lesson_id"`
 }
 
 func (VideoPart) TableName() string {

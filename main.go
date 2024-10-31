@@ -7,14 +7,18 @@ import (
 	authHandler "english_app/internal/auth_module/handler"
 	authRepo "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
 	authservice "english_app/internal/auth_module/services"
+	learningHandler "english_app/internal/course_module/handler"
 	coursepg "english_app/internal/course_module/repository/course_repository/course_pg"
 	exercisepg "english_app/internal/course_module/repository/exercise_repository/exercise_pg"
 	lessonpg "english_app/internal/course_module/repository/lesson_repository/lesson_pg"
-	contentmanagementservice "english_app/internal/course_module/service"
+	videoRepo "english_app/internal/course_module/repository/video_repository/video_pg"
+	learningService "english_app/internal/course_module/service"
 	progressHandler "english_app/internal/progress_module/handler"
 	courseProgressPG "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
 	lessonProgressPG "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
 	progressservice "english_app/internal/progress_module/service"
+	"english_app/pkg/gcloud"
+	"log"
 
 	//userHandler "english_app/internal/user_module/handler"
 	//userpostgres "english_app/internal/user_module/repository/userrepository/user_postgres"
@@ -28,7 +32,14 @@ func main() {
 	//kafkaBrokers := []string{"localhost:9092"}
 	//kafkaTopic := "userCreated"
 	db := postgresql.GetDBInstance()
+
+	gcsUploader, err := gcloud.NewGCSUploader()
+	if err != nil {
+		log.Fatalf(err.Message())
+	}
+
 	r := gin.Default()
+	r.MaxMultipartMemory = 1 << 30
 	courseRepo := coursepg.NewCourseRepository(db)
 	lessonRepo := lessonpg.NewLessonRepository(db)
 	exerciseRepo := exercisepg.NewExercisePostgres(db)
@@ -44,7 +55,7 @@ func main() {
 
 	//contentManagementService := contentmanagementservice.NewContentService(courseRepo, lessonRepo, exerciseRepo)
 
-	contentService := contentmanagementservice.NewContentService(courseRepo, lessonRepo, exerciseRepo)
+	contentService := learningService.NewContentService(courseRepo, lessonRepo, exerciseRepo)
 
 	aggregateService := services.NewAggregatorService(contentService, progressService)
 	AggregateHandler := handler.AggregateHandler{
@@ -82,6 +93,14 @@ func main() {
 	r.GET("/api/courses/summary", authService.Authentication(), AggregateHandler.GetCourseProgressSummary)
 	r.POST("/api/auth/register", authHandler.Register)
 	r.POST("/api/auth/login", authHandler.Login)
+
+	// Setup Repository dan Service
+	videoPartRepo := videoRepo.NewVideoPartRepository(db)
+	videoPartService := learningService.NewVideoPartService(videoPartRepo, gcsUploader)
+
+	// Setup Handler
+	v1 := r.Group("/api/v1")
+	learningHandler.NewVideoPartHandler(v1, videoPartService)
 	//go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
 	r.Run()
 
