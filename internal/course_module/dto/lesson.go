@@ -40,3 +40,22 @@ type VideoPartRequest struct {
 	FileHeader  *multipart.FileHeader
 	ContentType string
 }
+
+type LessonRequest struct {
+	CourseID    uuid.UUID `json:"course_id" binding:"required"`
+	Name        string    `json:"name" binding:"required"`
+	Description string    `json:"description"`
+	VideoID     uuid.UUID `json:"video_id" binding:"required"`
+	ExerciseID  uuid.UUID `json:"exercise_id" binding:"required"`
+	SummaryID   uuid.UUID `json:"summary_id" binding:"required"`
+}
+
+type LessonResponse struct {
+	ID          uuid.UUID `json:"id"`
+	CourseID    uuid.UUID `json:"course_id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	VideoID     uuid.UUID `json:"video_id"`
+	ExerciseID  uuid.UUID `json:"exercise_id"`
+	SummaryID   uuid.UUID `json:"summary_id"`
+}

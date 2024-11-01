@@ -115,8 +115,10 @@ func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetCon
 		totalCourseProgress = totalCourseProgress + progressLesson.ProgressPercentage
 	}
 
-	totalCourseProgress = totalCourseProgress / len(getALlLesson)
-	ResponseData.Progress = totalCourseProgress
+	if len(getALlLesson) != 0 {
+		totalCourseProgress = totalCourseProgress / len(getALlLesson)
+		ResponseData.Progress = totalCourseProgress
+	}
 
 	return ResponseData, nil
 
