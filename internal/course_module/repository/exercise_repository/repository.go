@@ -9,4 +9,8 @@ import (
 
 type ExerciseRepository interface {
 	FindByID(exerciseID uuid.UUID) (*entity.ExercisePart, errs.MessageErr)
+	CreateExercisePart(exercise *entity.ExercisePart) errs.MessageErr
+	GetExercisePartByID(id uuid.UUID) (*entity.ExercisePart, errs.MessageErr)
+	UpdateExercisePart(exercise *entity.ExercisePart) errs.MessageErr
+	DeleteExercisePart(id uuid.UUID) errs.MessageErr
 }

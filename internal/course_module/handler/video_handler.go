@@ -34,7 +34,7 @@ func (h *VideoPartHandler) Create(c *gin.Context) {
 	// request.VideoPoin, _ = strconv.Atoi(c.PostForm("video_poin"))
 
 	if err := json.Unmarshal([]byte(requestJson), &request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Request Structure"))
 		return
 	}
 
@@ -90,28 +90,19 @@ func (h *VideoPartHandler) Update(c *gin.Context) {
 	var request dto.VideoPartRequest
 
 	requestJson := c.PostForm("request")
-
-	// request.Title = c.PostForm("title")
-	// request.Description = c.PostForm("description")
-	// request.VideoExp, _ = strconv.Atoi(c.PostForm("video_exp"))
-	// request.VideoPoin, _ = strconv.Atoi(c.PostForm("video_poin"))
-
 	if err := json.Unmarshal([]byte(requestJson), &request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Request Structure"))
 		return
 	}
-	// if err := c.ShouldBindJSON(&request); err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		if err != http.ErrMissingFile {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from request"})
+			c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid File Request Structure"))
 			return
 		}
 	} else {
+
 		request.FileVideo = file
 		request.FileHeader = header
 		request.ContentType = header.Header.Get("Content-Type")
@@ -119,9 +110,9 @@ func (h *VideoPartHandler) Update(c *gin.Context) {
 
 	}
 
-	videoPart, err := h.service.Update(videoPartID, request)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	videoPart, err2 := h.service.Update(videoPartID, request)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
 		return
 	}
 

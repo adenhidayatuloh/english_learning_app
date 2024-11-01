@@ -1,38 +1,95 @@
 package handler
 
-// import (
-// 	service "english_app/internal/course_module/service/exercise_service"
-// 	"english_app/pkg/common"
-// 	"english_app/pkg/errs"
-// 	"net/http"
+import (
+	"english_app/internal/course_module/dto"
+	"english_app/internal/course_module/service"
+	"english_app/pkg/common"
+	"english_app/pkg/errs"
+	"net/http"
 
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/google/uuid"
-// )
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
 
-// type ExerciseHandler struct {
-// 	ExerciseService service.ExerciseService
-// }
+type ExercisePartHandler struct {
+	service service.ExerciseService
+}
 
-// func NewExerciseHandler(exerciseService service.ExerciseService) *ExerciseHandler {
-// 	return &ExerciseHandler{
-// 		ExerciseService: exerciseService,
-// 	}
-// }
+func NewExercisePartHandler(router *gin.RouterGroup, service service.ExerciseService) {
+	handler := ExercisePartHandler{service}
+	router.POST("/exercise-parts", handler.CreateExercisePart)
+	router.GET("/exercise-parts/:id", handler.GetExercisePartByID)
+	router.PUT("/exercise-parts/:id", handler.UpdateExercisePart)
+	router.DELETE("/exercise-parts/:id", handler.DeleteExercisePart)
+}
+func (h *ExercisePartHandler) CreateExercisePart(c *gin.Context) {
+	var request dto.ExercisePartRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Request Structure"+err.Error()))
+		return
+	}
 
-// func (h *ExerciseHandler) GetExerciseByID(c *gin.Context) {
-// 	exerciseIDParam := c.Param("exerciseID")
-// 	exerciseID, err := uuid.Parse(exerciseIDParam)
-// 	errParse := errs.NewBadRequest("Invalid exercise ID format")
-// 	if err != nil {
-// 		c.JSON(errParse.StatusCode(), errParse)
-// 		return
-// 	}
+	response, err2 := h.service.CreateExercisePart(request)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
 
-// 	data, err2 := h.ExerciseService.GetExerciseByID(exerciseID)
-// 	if err2 != nil {
-// 		c.JSON(err2.StatusCode(), err2)
-// 		return
-// 	}
-// 	c.JSON(common.BuildResponse(http.StatusOK, data))
-// }
+	c.JSON(common.BuildResponse(http.StatusOK, response))
+}
+
+func (h *ExercisePartHandler) GetExercisePartByID(c *gin.Context) {
+	id := c.Param("id")
+	exerciseID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Exercise ID"))
+		return
+	}
+
+	response, err2 := h.service.GetExercisePartByID(exerciseID)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, response))
+}
+
+func (h *ExercisePartHandler) UpdateExercisePart(c *gin.Context) {
+	id := c.Param("id")
+	exerciseID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Exercise ID"))
+		return
+	}
+
+	var request dto.ExercisePartRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Request Structure"))
+		return
+	}
+
+	response, err2 := h.service.UpdateExercisePart(exerciseID, request)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, response))
+}
+
+func (h *ExercisePartHandler) DeleteExercisePart(c *gin.Context) {
+	id := c.Param("id")
+	exerciseID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Exercise ID"))
+		return
+	}
+
+	if err2 := h.service.DeleteExercisePart(exerciseID); err != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, nil))
+}

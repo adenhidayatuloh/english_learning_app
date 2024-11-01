@@ -27,3 +27,40 @@ func (r *exercisePostgres) FindByID(exerciseID uuid.UUID) (*entity.ExercisePart,
 	fmt.Println(exercise.ExerciseDuration)
 	return &exercise, nil
 }
+
+func (r *exercisePostgres) CreateExercisePart(exercise *entity.ExercisePart) errs.MessageErr {
+	err := r.db.Create(exercise).Error
+
+	if err != nil {
+		return errs.NewBadRequest("Cannot Create Exercise")
+	}
+	return nil
+}
+
+func (r *exercisePostgres) GetExercisePartByID(id uuid.UUID) (*entity.ExercisePart, errs.MessageErr) {
+	var exercise entity.ExercisePart
+	if err := r.db.Preload("Questions").First(&exercise, "id = ?", id).Error; err != nil {
+		return nil, errs.NewNotFound("exercise not found")
+	}
+	return &exercise, nil
+}
+
+func (r *exercisePostgres) UpdateExercisePart(exercise *entity.ExercisePart) errs.MessageErr {
+	err := r.db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(exercise).Error
+
+	if err != nil {
+		return errs.NewBadRequest("Cannot Update Exercise")
+	}
+
+	return nil
+}
+
+func (r *exercisePostgres) DeleteExercisePart(id uuid.UUID) errs.MessageErr {
+	err := r.db.Delete(&entity.ExercisePart{}, id).Error
+
+	if err != nil {
+		return errs.NewBadRequest("Cannot Delete Exercise")
+	}
+
+	return nil
+}

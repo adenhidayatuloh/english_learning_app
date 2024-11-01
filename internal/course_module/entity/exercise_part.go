@@ -7,8 +7,8 @@ import (
 )
 
 type ExercisePart struct {
-	ID               uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-	LessonID         uuid.UUID      `gorm:"type:uuid;not null" json:"lesson_id"`
+	ID uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	//LessonID         uuid.UUID      `gorm:"type:uuid;not null" json:"lesson_id"`
 	ExerciseExp      int            `json:"exercise_exp"`
 	ExercisePoin     int            `json:"exercise_poin"`
 	ExerciseDuration int            `json:"exercise_duration"`

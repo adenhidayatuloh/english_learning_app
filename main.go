@@ -11,6 +11,7 @@ import (
 	coursepg "english_app/internal/course_module/repository/course_repository/course_pg"
 	exercisepg "english_app/internal/course_module/repository/exercise_repository/exercise_pg"
 	lessonpg "english_app/internal/course_module/repository/lesson_repository/lesson_pg"
+	summaryRepo "english_app/internal/course_module/repository/summary_repository/summary_pg"
 	videoRepo "english_app/internal/course_module/repository/video_repository/video_pg"
 	learningService "english_app/internal/course_module/service"
 	progressHandler "english_app/internal/progress_module/handler"
@@ -98,83 +99,17 @@ func main() {
 	videoPartRepo := videoRepo.NewVideoPartRepository(db)
 	videoPartService := learningService.NewVideoPartService(videoPartRepo, gcsUploader)
 
+	summaryPartRepo := summaryRepo.NewSummaryPartRepository(db)
+	summaryPartService := learningService.NewSummaryPartService(summaryPartRepo, gcsUploader)
+
+	exercisePartService := learningService.NewExerciseService(exerciseRepo)
+
 	// Setup Handler
 	v1 := r.Group("/api/v1")
 	learningHandler.NewVideoPartHandler(v1, videoPartService)
+	learningHandler.NewSummaryPartHandler(v1, summaryPartService)
+	learningHandler.NewExercisePartHandler(v1, exercisePartService)
 	//go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
 	r.Run()
 
 }
-
-// package main
-
-// import (
-// 	"english_app/tes/profile"
-// 	"english_app/tes/user"
-
-// 	"github.com/gin-gonic/gin"
-// )
-
-// func main() {
-// 	r := gin.Default()
-
-// 	// Mendaftarkan route untuk modul
-// 	profile.RegisterRoutes(r)
-// 	user.RegisterRoutes(r)
-
-// 	r.Run(":8080") // Menjalankan server di port 8080
-// }
-
-// Definisikan struktur data input
-// type Input struct {
-// 	Course   string `json:"course"`
-// 	Category string `json:"category"`
-// }
-
-// // Definisikan struktur data output yang diinginkan
-// type Output struct {
-// 	Course     string     `json:"course"`
-// 	Categories []Category `json:"categories"`
-// }
-
-// type Category struct {
-// 	Category string `json:"category"`
-// }
-
-// func groupByCourse(input []Input) []Output {
-// 	// Buat map untuk mengelompokkan data berdasarkan course
-// 	grouped := make(map[string][]Category)
-
-// 	for _, item := range input {
-// 		category := Category{Category: item.Category}
-// 		grouped[item.Course] = append(grouped[item.Course], category)
-// 	}
-
-// 	// Konversi map menjadi slice Output
-// 	var output []Output
-// 	for course, categories := range grouped {
-// 		output = append(output, Output{
-// 			Course:     course,
-// 			Categories: categories,
-// 		})
-// 	}
-// 	return output
-// }
-
-// func main() {
-// 	// Data input awal
-// 	input := []Input{
-// 		{Course: "speaking", Category: "b"},
-// 		{Course: "speaking", Category: "i"},
-// 		{Course: "writting", Category: "gampang"},
-// 		{Course: "writting", Category: "eazyy"},
-// 		// Tambahkan data lain jika diperlukan
-// 	}
-
-// 	// Proses data
-// 	output := groupByCourse(input)
-
-// 	// Konversi hasil output ke JSON dan cetak
-// 	result, _ := json.MarshalIndent(output, "", "  ")
-// 	fmt.Println(string(result))
-// }
