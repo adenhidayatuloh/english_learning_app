@@ -131,7 +131,7 @@ func (u *authService) Register(payload *dto.RegisterRequest) (*dto.RegisterRespo
 		return nil, err
 	}
 
-	// err2 := event.PublishUserCreated(u.kafkaBrokers, u.kafkaTopic, registeredUser.ID.String(), uuid.NewString())
+	// err2 := event.PublishUserCreated([]string{"localhost:9097"}, "adduser", registeredUser.ID.String(), uuid.NewString())
 	// if err2 != nil {
 	// 	return nil, errs.NewBadRequest("Cannot send to topic")
 	// }

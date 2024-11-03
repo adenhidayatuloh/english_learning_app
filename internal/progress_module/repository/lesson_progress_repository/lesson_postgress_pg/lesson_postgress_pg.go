@@ -32,9 +32,6 @@ func (r *lessonProgressRepository) GetAllProgressByUserID(userID uuid.UUID) ([]*
 // UpdateLessonProgress implements lessonprogressrepository.LessonProgressRepository.
 func (r *lessonProgressRepository) UpdateLessonProgress(oldProgress *entity.LessonProgress, newProgress *entity.LessonProgress) (*entity.LessonProgress, errs.MessageErr) {
 
-	fmt.Println("INI old Progress : ", oldProgress)
-	fmt.Println("INI new Progress : ", newProgress)
-
 	// if err := r.db.Model(oldProgress).Updates(newProgress).Error; err != nil {
 
 	// 	fmt.Println("errror")
@@ -65,7 +62,7 @@ func (r *lessonProgressRepository) GetByUserAndLesson(userID uuid.UUID, lessonID
 	if err := r.db.Where("user_id = ? AND lesson_id = ?", userID, lessonID).First(&lessonProgress).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &entity.LessonProgress{}, nil
+			return nil, errs.NewNotFound("Lesson progress not found")
 		}
 
 		return nil, errs.NewBadRequest("Cannot find lesson progress")

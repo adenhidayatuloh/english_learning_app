@@ -14,7 +14,7 @@ import (
 
 func ConsumeUserCreated(db *gorm.DB, topic string, lessonProgressService service.ProgressService) {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"localhost:9092"},
+		Brokers: []string{"localhost:9097"},
 		Topic:   topic,
 		GroupID: "lesson-progress-group", // group id for Kafka
 	})

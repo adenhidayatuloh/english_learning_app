@@ -86,7 +86,7 @@ func (h *ExercisePartHandler) DeleteExercisePart(c *gin.Context) {
 		return
 	}
 
-	if err2 := h.service.DeleteExercisePart(exerciseID); err != nil {
+	if err2 := h.service.DeleteExercisePart(exerciseID); err2 != nil {
 		c.JSON(err2.StatusCode(), err2)
 		return
 	}

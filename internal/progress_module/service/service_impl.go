@@ -6,6 +6,7 @@ import (
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,7 +51,15 @@ func (s *progressService) GetLessonProgress(userID, lessonID uuid.UUID) (*entity
 
 	lessonProgress, err := s.lessonProgressRepo.GetByUserAndLesson(userID, lessonID)
 	if err != nil {
+
+		if err.StatusCode() == http.StatusNotFound {
+			lessonProgress.ProgressPercentage = 0
+
+			return lessonProgress, nil
+		}
+
 		return nil, err
+
 	}
 
 	progressLessonUser := 0
@@ -91,7 +100,14 @@ func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (
 	oldProgress, err := s.lessonProgressRepo.GetByUserAndLesson(payload.UserID, payload.LessonID)
 
 	if err != nil {
-		return nil, err
+
+		lesson, err := s.CreateLessonProgress(payload.UserID, payload.LessonID)
+
+		if err != nil {
+			return nil, errs.NewBadRequest(err.Error())
+		}
+
+		oldProgress = lesson
 	}
 
 	newProgress := &entity.LessonProgress{
@@ -112,9 +128,4 @@ func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (
 
 	return response, nil
 
-	// err := s.lessonProgressRepo.Create(lessonProgress)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return lessonProgress, nil
 }
