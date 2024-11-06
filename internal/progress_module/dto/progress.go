@@ -12,4 +12,5 @@ type LessonProgressDTO struct {
 	IsVideoCompleted    bool      `json:"is_video_completed"`
 	IsExerciseCompleted bool      `json:"is_exercise_completed"`
 	IsSummaryCompleted  bool      `json:"is_summary_completed"`
+	CourseID            uuid.UUID `json:"course_id"`
 }

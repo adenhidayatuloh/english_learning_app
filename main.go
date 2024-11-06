@@ -24,19 +24,13 @@ import (
 	"english_app/pkg/gcloud"
 	"log"
 
-	//userHandler "english_app/internal/user_module/handler"
-	//userpostgres "english_app/internal/user_module/repository/userrepository/user_postgres"
-	//userservice "english_app/internal/user_module/service"
-
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-	//kafkaBrokers := []string{"localhost:9092"}
-	//kafkaTopic := "userCreated"
-	db := postgresql.GetDBInstance()
 
+	db := postgresql.GetDBInstance()
 	gcsUploader, err := gcloud.NewGCSUploader()
 	if err != nil {
 		log.Fatalf(err.Message())
@@ -47,57 +41,25 @@ func main() {
 	courseRepo := coursepg.NewCourseRepository(db)
 	lessonRepo := lessonpg.NewLessonRepository(db)
 	exerciseRepo := exercisepg.NewExercisePostgres(db)
-
-	// data, _ := courseRepo.FindByNameAndCategory("speaking", "beginner")
-
-	// fmt.Print(data)
 	lessonProgressRepo := lessonProgressPG.NewLessonProgressRepository(db)
 	courseprogressRepo := courseProgressPG.NewCourseProgressRepository(db)
 	authRepo := authRepo.NewUserMySql(db)
-
 	progressService := progressservice.NewProgressService(courseprogressRepo, lessonProgressRepo)
-
-	//contentManagementService := contentmanagementservice.NewContentService(courseRepo, lessonRepo, exerciseRepo)
-
 	contentService := learningService.NewContentService(courseRepo, lessonRepo, exerciseRepo)
-
 	aggregateService := services.NewAggregatorService(contentService, progressService)
 	AggregateHandler := handler.AggregateHandler{
 		AggregateService: aggregateService,
 	}
-
-	//_ = contentManagementService
-
-	//fmt.Println(data)
-
-	// courseService := courseservice.NewCourseService(courseRepo, lessonRepo)
-	// lessonService := lessonservice.NewLessonService(lessonRepo)
-	// exerciseService := exerciseservice.NewExerciseService(exerciseRepo)
-	//userService := userservice.NewUserService(userRepo, kafkaBrokers, kafkaTopic)
-
 	authService := authservice.NewAuthService(authRepo)
-
-	// courseHandler := handler.CourseHandler{CourseService: courseService}
-	// lessonHandler := handler.LessonHandler{LessonService: lessonService}
-	// exerciseHandler := handler.ExerciseHandler{ExerciseService: exerciseService}
 	authHandler := authHandler.NewAuthHandler(authService)
-
-	//userHandler := userHandler.NewUserHandler(userService)
-
 	progressHandler := progressHandler.NewProgressHandler(progressService)
-
-	// Route untuk mengambil course progress
-	//r.GET("/course-progress/:user_id/:course_id", authService.Authentication(), AggregateHandler.GetCourseByNameAndCategory)
-	// Route untuk mengambil lesson progress
-	r.PUT("/api/update_progress_lesson/:lesson_id", authService.Authentication(), progressHandler.UpdateLessonProgress)
+	r.PUT("/api/update_progress_lesson", authService.Authentication(), progressHandler.UpdateLessonProgress)
 	r.GET("/api/courses", authService.Authentication(), AggregateHandler.GetCourseByNameAndCategory)
 	r.GET("/api/lesson/:Lesson_ID", authService.Authentication(), AggregateHandler.GetALessonDetail)
 	r.GET("/api/exercise/:exerciseID", authService.Authentication(), AggregateHandler.GetExerciseByID)
-
 	r.GET("/api/courses/summary", authService.Authentication(), AggregateHandler.GetCourseProgressSummary)
 	r.POST("/api/auth/register", authHandler.Register)
 	r.POST("/api/auth/login", authHandler.Login)
-
 	// Setup Repository dan Service
 	videoPartRepo := videoRepo.NewVideoPartRepository(db)
 	videoPartService := learningService.NewVideoPartService(videoPartRepo, gcsUploader)
@@ -119,20 +81,182 @@ func main() {
 	aiHandler.NewGrammarHandler(v1, aiService)
 
 	go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
-	go event.ConsumeUserCreated(db, "adduser", progressService)
+	//go event.ConsumeUserCreated(db, "adduser", progressService)
 
-	// id, _ := uuid.Parse("580b0543-2dad-48d7-837c-6d2f8aeb62da")
-	// ld, _ := uuid.Parse("5c7763fa-b72f-4987-8ea1-8d728bd16ec7")
-	// v, e := progressService.UpdateLessonProgress(&dto.LessonProgressDTO{UserID: id,
-
-	// 	LessonID: ld,
-	// })
-
-	// if e != nil {
-	// 	log.Println(e)
-	// }
-
-	// fmt.Print(v)
 	r.Run()
 
 }
+
+// package main
+
+// import (
+// 	"encoding/json"
+// 	"fmt"
+// )
+
+// // Struct untuk merepresentasikan level
+// type Level struct {
+// 	Name string `json:"name"`
+// 	Poin int    `json:"poin"`
+// }
+
+// // Struct untuk merepresentasikan hasil akhir
+// type GroupedData struct {
+// 	Name        string  `json:"name"`
+// 	Description string  `json:"description"`
+// 	Levels      []Level `json:"levels"`
+// }
+
+// // Struct untuk data input
+// type Data struct {
+// 	ID          string `json:"id"`
+// 	Name        string `json:"name"`
+// 	Level       string `json:"level"`
+// 	Description string `json:"description"`
+// }
+
+// // Struct untuk poin yang terpisah dari data
+// type Poin struct {
+// 	Data_ID string `json:"data_id"`
+// 	Poin    int    `json:"poin"`
+// }
+
+// func main() {
+// 	// Data awal
+// 	data := []Data{
+// 		{ID: "1", Name: "speaking", Level: "advanced", Description: "ini description speaking"},
+// 		{ID: "2", Name: "speaking", Level: "beginner", Description: "ini description speaking"},
+// 	}
+
+// 	// Poin yang terpisah
+// 	points := []Poin{
+// 		{Data_ID: "1", Poin: 21},
+// 		{Data_ID: "2", Poin: 30},
+// 	}
+
+// 	// Map untuk mengelompokkan data berdasarkan name
+// 	groupedMap := make(map[string]*GroupedData)
+
+// 	// Mengelompokkan data berdasarkan name
+// 	for _, d := range data {
+// 		// Jika data belum ada di map, inisialisasi dengan name dan description
+// 		if _, exists := groupedMap[d.Name]; !exists {
+// 			groupedMap[d.Name] = &GroupedData{
+// 				Name:        d.Name,
+// 				Description: d.Description,
+// 				Levels:      []Level{},
+// 			}
+// 		}
+// 	}
+
+// 	// Mengisi Levels dengan menghubungkan data ID dan data poin
+// 	for _, p := range points {
+// 		for _, d := range data {
+// 			if d.ID == p.Data_ID {
+// 				// Menambahkan level ke groupedMap melalui pointer
+// 				groupedMap[d.Name].Levels = append(groupedMap[d.Name].Levels, Level{
+// 					Name: d.Level,
+// 					Poin: p.Poin,
+// 				})
+// 				break
+// 			}
+// 		}
+// 	}
+
+// 	// Mengubah map menjadi slice of GroupedData
+// 	var result []GroupedData
+// 	for _, groupedData := range groupedMap {
+// 		result = append(result, *groupedData)
+// 	}
+
+// 	// Menampilkan hasil
+// 	jsonResult, _ := json.MarshalIndent(result, "", "  ")
+// 	fmt.Println(string(jsonResult))
+// }
+
+// package main
+
+// import (
+// 	"encoding/json"
+// 	"fmt"
+// )
+
+// // Struct untuk merepresentasikan level
+// type Level struct {
+// 	Name string `json:"name"`
+// 	Poin int    `json:"poin"`
+// }
+
+// // Struct untuk hasil akhir
+// type GroupedData struct {
+// 	Name        string  `json:"name"`
+// 	Description string  `json:"description"`
+// 	Levels      []Level `json:"levels"`
+// }
+
+// // Struct untuk data input
+// type Data struct {
+// 	ID          string `json:"id"`
+// 	Name        string `json:"name"`
+// 	Level       string `json:"level"`
+// 	Description string `json:"description"`
+// }
+
+// // Struct untuk poin yang terpisah dari data
+// type Poin struct {
+// 	Data_ID string `json:"data_id"`
+// 	Poin    int    `json:"poin"`
+// }
+
+// func main() {
+// 	// Data awal
+// 	data := []Data{
+// 		{ID: "1", Name: "speaking", Level: "advanced", Description: "ini description speaking"},
+// 		{ID: "2", Name: "speaking", Level: "beginner", Description: "ini description speaking"},
+// 	}
+
+// 	// Poin yang terpisah
+// 	points := []Poin{
+// 		{Data_ID: "1", Poin: 10},
+// 		{Data_ID: "2", Poin: 19},
+// 	}
+
+// 	// Map untuk menyimpan data poin berdasarkan Data_ID
+// 	poinMap := make(map[string]int)
+// 	for _, p := range points {
+// 		poinMap[p.Data_ID] = p.Poin
+// 	}
+
+// 	// Map untuk mengelompokkan data berdasarkan name
+// 	groupedMap := make(map[string]*GroupedData)
+
+// 	// Menggabungkan data dan poin dalam satu loop
+// 	for _, d := range data {
+// 		// Jika belum ada di map, inisialisasi dengan name dan description
+// 		if _, exists := groupedMap[d.Name]; !exists {
+// 			groupedMap[d.Name] = &GroupedData{
+// 				Name:        d.Name,
+// 				Description: d.Description,
+// 				Levels:      []Level{},
+// 			}
+// 		}
+
+// 		// Menambahkan level langsung jika data poin ditemukan di poinMap
+// 		if poin, found := poinMap[d.ID]; found {
+// 			groupedMap[d.Name].Levels = append(groupedMap[d.Name].Levels, Level{
+// 				Name: d.Level,
+// 				Poin: poin,
+// 			})
+// 		}
+// 	}
+
+// 	// Mengubah map menjadi slice of GroupedData
+// 	var result []GroupedData
+// 	for _, groupedData := range groupedMap {
+// 		result = append(result, *groupedData)
+// 	}
+
+// 	// Menampilkan hasil
+// 	jsonResult, _ := json.MarshalIndent(result, "", "  ")
+// 	fmt.Println(string(jsonResult))
+// }

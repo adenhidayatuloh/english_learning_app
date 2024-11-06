@@ -6,7 +6,6 @@ import (
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
-	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +14,12 @@ import (
 type progressService struct {
 	courseProgressRepo courseprogressrepository.CourseProgressRepository
 	lessonProgressRepo lessonprogressrepository.LessonProgressRepository
+}
+
+// GetAllCourseProgressByUserID implements ProgressService.
+func (s *progressService) GetAllCourseProgressByUserID(userID uuid.UUID) ([]*entity.CourseProgress, errs.MessageErr) {
+
+	return s.courseProgressRepo.GetAllCourseProgressByUserID(userID)
 }
 
 // GetAllProgressByUserID implements ProgressService.
@@ -39,54 +44,47 @@ func (s *progressService) GetCourseProgress(userID, courseID uuid.UUID) (*entity
 	return courseProgress, nil
 }
 
-//	return &dto.CourseProgressDTO{
-//		ID:                 courseProgress.ID,
-//		CourseID:           courseProgress.CourseID,
-//		ProgressPercentage: courseProgress.ProgressPercentage,
-//		IsCompleted:        courseProgress.IsCompleted,
-//		CreatedAt:          courseProgress.CreatedAt,
-//		UpdatedAt:          courseProgress.UpdatedAt,
-//	}, nil
 func (s *progressService) GetLessonProgress(userID, lessonID uuid.UUID) (*entity.LessonProgress, errs.MessageErr) {
 
+	//return &entity.LessonProgress{}, nil
+
 	lessonProgress, err := s.lessonProgressRepo.GetByUserAndLesson(userID, lessonID)
+
+	// fmt.Println(lessonProgress)
+	// fmt.Println(err)
+
+	// return &entity.LessonProgress{}, nil
 	if err != nil {
-
-		if err.StatusCode() == http.StatusNotFound {
-			lessonProgress.ProgressPercentage = 0
-
-			return lessonProgress, nil
-		}
-
-		return nil, err
-
+		lessonProgress.ProgressPercentage = 0
+		return lessonProgress, nil
 	}
 
-	progressLessonUser := 0
+	// progressLessonUser := 0
 
-	if lessonProgress.IsVideoCompleted {
-		progressLessonUser += 40
-	}
+	// if lessonProgress.IsVideoCompleted {
+	// 	progressLessonUser += 40
+	// }
 
-	if lessonProgress.IsExerciseCompleted {
-		progressLessonUser += 40
-	}
+	// if lessonProgress.IsExerciseCompleted {
+	// 	progressLessonUser += 40
+	// }
 
-	if lessonProgress.IsSummaryCompleted {
-		progressLessonUser += 20
-	}
+	// if lessonProgress.IsSummaryCompleted {
+	// 	progressLessonUser += 20
+	// }
 
-	lessonProgress.ProgressPercentage = progressLessonUser
+	// lessonProgress.ProgressPercentage = progressLessonUser
 
 	return lessonProgress, nil
 
 }
 
 // CreateLessonProgress creates a new lesson progress.
-func (s *progressService) CreateLessonProgress(userID, lessonID uuid.UUID) (*entity.LessonProgress, error) {
+func (s *progressService) CreateLessonProgress(userID, lessonID uuid.UUID, courseID uuid.UUID) (*entity.LessonProgress, error) {
 	lessonProgress := &entity.LessonProgress{
 		UserID:   userID,
 		LessonID: lessonID,
+		CourseID: courseID,
 	}
 
 	err := s.lessonProgressRepo.Create(lessonProgress)
@@ -101,7 +99,7 @@ func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (
 
 	if err != nil {
 
-		lesson, err := s.CreateLessonProgress(payload.UserID, payload.LessonID)
+		lesson, err := s.CreateLessonProgress(payload.UserID, payload.LessonID, payload.CourseID)
 
 		if err != nil {
 			return nil, errs.NewBadRequest(err.Error())

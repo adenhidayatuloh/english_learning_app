@@ -10,10 +10,11 @@ type Lesson struct {
 }
 
 type CourseData struct {
-	CoursesName string   `json:"courses_name"`
-	Description string   `json:"description"`
-	Progress    int      `json:"progress"`
-	ListLessons []Lesson `json:"list_lessons"`
+	CoursesName string    `json:"courses_name"`
+	Description string    `json:"description"`
+	Progress    int       `json:"progress"`
+	CourseID    uuid.UUID `json:"course_id"`
+	ListLessons []Lesson  `json:"list_lessons"`
 }
 
 type GetContentProgressRequest struct {
@@ -67,8 +68,9 @@ type QuizQuestion struct {
 }
 
 type CourseDescriptionResponse struct {
-	Course           string                    `json:"course"`
-	Description      string                    `json:"description"`
+	Course      string `json:"course"`
+	Description string `json:"description"`
+	//CourseID         uuid.UUID                 `json:"course_id"`
 	CategoryProgress []CategoryProgresResponse `json:"progress"`
 }
 type CategoryProgresResponse struct {

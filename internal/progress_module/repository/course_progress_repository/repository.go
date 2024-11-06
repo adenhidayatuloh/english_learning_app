@@ -9,4 +9,5 @@ import (
 
 type CourseProgressRepository interface {
 	GetByUserAndCourse(userID uuid.UUID, courseID uuid.UUID) (*entity.CourseProgress, errs.MessageErr)
+	GetAllCourseProgressByUserID(userID uuid.UUID) ([]*entity.CourseProgress, errs.MessageErr)
 }

@@ -22,13 +22,13 @@ func NewProgressHandler(s service.ProgressService) *ProgressHandler {
 
 func (h *ProgressHandler) UpdateLessonProgress(c *gin.Context) {
 
-	lessonIDParam := c.Param("lesson_id")
-	lessonID, err := uuid.Parse(lessonIDParam)
-	errParse := errs.NewBadRequest("Invalid lesson ID format")
-	if err != nil {
-		c.JSON(errParse.StatusCode(), errParse)
-		return
-	}
+	// lessonIDParam := c.Param("lesson_id")
+	// lessonID, err := uuid.Parse(lessonIDParam)
+	// errParse := errs.NewBadRequest("Invalid lesson ID format")
+	// if err != nil {
+	// 	c.JSON(errParse.StatusCode(), errParse)
+	// 	return
+	// }
 
 	userID, ok := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 
@@ -46,13 +46,13 @@ func (h *ProgressHandler) UpdateLessonProgress(c *gin.Context) {
 	}
 
 	updateLessonDto.UserID = userID
-	updateLessonDto.LessonID = lessonID
+	//updateLessonDto.LessonID = lessonID
 
 	err2 := event.PublishUpdateLesson([]string{"localhost:9097"}, "progressupdate", &updateLessonDto)
 
 	// response, err2 := h.progressService.UpdateLessonProgress(&updateLessonDto)
 	if err2 != nil {
-		c.JSON(err2.StatusCode(), err)
+		c.JSON(err2.StatusCode(), err2)
 		return
 	}
 

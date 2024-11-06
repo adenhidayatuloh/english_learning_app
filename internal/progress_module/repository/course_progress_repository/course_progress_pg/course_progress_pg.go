@@ -4,6 +4,8 @@ import (
 	"english_app/internal/progress_module/entity"
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	"english_app/pkg/errs"
+	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -23,4 +25,16 @@ func (r *courseProgressRepository) GetByUserAndCourse(userID uuid.UUID, courseID
 		return nil, errs.NewNotFound("users or course not found")
 	}
 	return &courseProgress, nil
+}
+
+func (r *courseProgressRepository) GetAllCourseProgressByUserID(userID uuid.UUID) ([]*entity.CourseProgress, errs.MessageErr) {
+	var data []*entity.CourseProgress
+	if err := r.db.Where("user_id = ?", userID).Find(&data).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+
+			return nil, errs.NewNotFound(fmt.Sprintf("Progress with user ID %s is not found", userID))
+		}
+		return nil, errs.NewBadRequest("Progress not found")
+	}
+	return data, nil
 }

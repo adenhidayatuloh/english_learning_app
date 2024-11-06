@@ -94,6 +94,7 @@ func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetCon
 	ResponseData := &dto.CourseData{
 		CoursesName: getCourse.Name,
 		Description: getCourse.Description,
+		CourseID:    getCourse.ID,
 		ListLessons: make([]dto.Lesson, len(getALlLesson)),
 	}
 
@@ -162,7 +163,14 @@ func (s *aggregatorService) GetExerciseDetail(exerciseID uuid.UUID) (*dto.Exerci
 
 func (s *aggregatorService) GetCourseProgressSummary(userID uuid.UUID) (any, errs.MessageErr) {
 
+	// type CategoryProgresResponse struct {
+	// 	Category           string `json:"category"`
+	// 	ProgressPercentage int    `json:"progress_percentage"`
+	// }
+
 	Responses := []*dto.CourseDescriptionResponse{}
+
+	_ = Responses
 
 	CourseData, err := s.GetAllCourse()
 
@@ -170,231 +178,51 @@ func (s *aggregatorService) GetCourseProgressSummary(userID uuid.UUID) (any, err
 		return nil, err
 	}
 
-	//return CourseData, nil
-
-	LessonProgress, err := s.GetAllProgressByUserID(userID)
+	LessonProgress, err := s.GetAllCourseProgressByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	//return LessonProgress, nil
+	//courses := []string{}
 
-	for _, valueCourse := range CourseData {
-		response := &dto.CourseDescriptionResponse{
-			Course:      valueCourse.Name,
-			Description: valueCourse.Description,
-		}
-		categoryProgresses := []dto.CategoryProgresResponse{}
+	// Map untuk mengelompokkan data berdasarkan name
+	poinMap := make(map[uuid.UUID]int)
+	for _, p := range LessonProgress {
+		poinMap[p.CourseID] = p.ProgressPercentage
+	}
 
-		for _, valueLesson := range valueCourse.Lessons {
-			categoryProgress := dto.CategoryProgresResponse{
-				Category: valueCourse.Category,
+	groupedMap := make(map[string]*dto.CourseDescriptionResponse)
+
+	// Mengelompokkan data berdasarkan name
+	for _, data := range CourseData {
+		// Jika data belum ada di map, inisialisasi dengan name dan description
+		if _, exists := groupedMap[data.Name]; !exists {
+			groupedMap[data.Name] = &dto.CourseDescriptionResponse{
+				Course:           data.Name,
+				Description:      data.Description,
+				CategoryProgress: []dto.CategoryProgresResponse{},
 			}
-			progress := 0
-			for _, lessonProgress := range LessonProgress {
-
-				if lessonProgress.LessonID == valueLesson.ID {
-					progress = progress + lessonProgress.ProgressPercentage
-
-				}
-			}
-			categoryProgress.ProgressPercentage = progress / len(valueCourse.Lessons)
-			categoryProgresses = append(categoryProgresses, categoryProgress)
 		}
 
-		response.CategoryProgress = categoryProgresses
+		if poin, found := poinMap[data.ID]; found {
+			groupedMap[data.Name].CategoryProgress = append(groupedMap[data.Name].CategoryProgress, dto.CategoryProgresResponse{
+				Category:           data.Category,
+				ProgressPercentage: poin,
+			})
+		} else {
+			groupedMap[data.Name].CategoryProgress = append(groupedMap[data.Name].CategoryProgress, dto.CategoryProgresResponse{
+				Category:           data.Category,
+				ProgressPercentage: 0,
+			})
 
-		Responses = append(Responses, response)
+		}
 
+	}
+
+	for _, groupedData := range groupedMap {
+		Responses = append(Responses, groupedData)
 	}
 
 	return Responses, nil
 
 }
-
-// func (s *aggregatorService) GetCourseProgressSummary(userID uuid.UUID) (any, errs.MessageErr) {
-// 	var responses []*dto.CourseDescriptionResponse
-
-// 	// Dapatkan semua data course
-// 	courseData, err := s.GetAllCourse()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Dapatkan semua progress lesson berdasarkan userID
-// 	lessonProgressData, err := s.GetAllProgressByUserID(userID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Buat map untuk memudahkan pencarian progress berdasarkan LessonID
-// 	progressMap := make(map[uuid.UUID]int)
-// 	for _, lessonProgress := range lessonProgressData {
-// 		progressMap[lessonProgress.LessonID] = lessonProgress.ProgressPercentage
-// 	}
-
-// 	for _, course := range courseData {
-// 		response := &dto.CourseDescriptionResponse{
-// 			Course:      course.Name,
-// 			Description: course.Description,
-// 		}
-
-// 		var categoryProgresses []dto.CategoryProgresResponse
-// 		for _, lesson := range course.Lessons {
-// 			// Dapatkan progress dari map jika ada
-// 			progress := progressMap[lesson.ID]
-
-// 			categoryProgress := dto.CategoryProgresResponse{
-// 				Category:           course.Category,
-// 				ProgressPercentage: progress / len(course.Lessons),
-// 			}
-
-// 			categoryProgresses = append(categoryProgresses, categoryProgress)
-// 		}
-
-// 		response.CategoryProgress = categoryProgresses
-// 		responses = append(responses, response)
-// 	}
-
-// 	return responses, nil
-// }
-
-// func (s *aggregatorService) GetCourseProgressSummary(userID uuid.UUID) (any, errs.MessageErr) {
-// 	var responses []*dto.CourseDescriptionResponse
-
-// 	// Dapatkan semua data course
-// 	courseData, err := s.GetAllCourse()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Dapatkan semua progress lesson berdasarkan userID
-// 	lessonProgressData, err := s.GetAllProgressByUserID(userID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Buat map untuk memudahkan pencarian progress berdasarkan LessonID
-// 	progressMap := make(map[uuid.UUID]int)
-// 	for _, lessonProgress := range lessonProgressData {
-// 		progressMap[lessonProgress.LessonID] = lessonProgress.ProgressPercentage
-// 	}
-
-// 	// Buat map untuk mengelompokkan category progress berdasarkan course
-// 	groupedCourses := make(map[string]*dto.CourseDescriptionResponse)
-
-// 	for _, course := range courseData {
-// 		// Jika course belum ada di map, buat entri baru
-// 		if _, exists := groupedCourses[course.Name]; !exists {
-// 			groupedCourses[course.Name] = &dto.CourseDescriptionResponse{
-// 				Course:           course.Name,
-// 				Description:      course.Description,
-// 				CategoryProgress: []dto.CategoryProgresResponse{},
-// 			}
-// 		}
-
-// 		// Ambil referensi course dari map
-// 		courseResponse := groupedCourses[course.Name]
-
-// 		// Buat map tambahan untuk menghitung total progress per kategori
-// 		categoryProgressMap := make(map[string]int)
-// 		categoryCountMap := make(map[string]int)
-
-// 		for _, lesson := range course.Lessons {
-// 			// Dapatkan progress dari map jika ada
-// 			progress := progressMap[lesson.ID]
-// 			category := course.Category
-
-// 			// Tambahkan progress ke kategori terkait di map
-// 			categoryProgressMap[category] += progress
-// 			categoryCountMap[category]++
-// 		}
-
-// 		// Hitung rata-rata progress untuk setiap kategori
-// 		for category, totalProgress := range categoryProgressMap {
-// 			averageProgress := 0
-// 			if count := categoryCountMap[category]; count > 0 {
-// 				averageProgress = totalProgress / count
-// 			}
-
-// 			// Tambahkan ke categoryProgress di course
-// 			courseResponse.CategoryProgress = append(courseResponse.CategoryProgress, dto.CategoryProgresResponse{
-// 				Category:           category,
-// 				ProgressPercentage: averageProgress,
-// 			})
-// 		}
-// 	}
-
-// 	// Ubah map ke dalam bentuk slice
-// 	for _, response := range groupedCourses {
-// 		responses = append(responses, response)
-// 	}
-
-// 	return responses, nil
-// }
-
-// func (s *aggregatorService) GetCourseProgressSummary(userID uuid.UUID) (any, errs.MessageErr) {
-// 	var responses []*dto.CourseDescriptionResponse
-
-// 	// Dapatkan semua data course
-// 	courseData, err := s.GetAllCourse()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Dapatkan semua progress lesson berdasarkan userID
-// 	lessonProgressData, err := s.GetAllProgressByUserID(userID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Buat map untuk memudahkan pencarian progress berdasarkan LessonID
-// 	progressMap := make(map[uuid.UUID]int)
-// 	for _, lessonProgress := range lessonProgressData {
-// 		progressMap[lessonProgress.LessonID] = lessonProgress.ProgressPercentage
-// 	}
-
-// 	// Daftar default kategori yang akan digunakan jika tidak ada progress
-// 	defaultCategories := []string{"beginner", "intermediate", "advanced"}
-
-// 	for _, course := range courseData {
-// 		response := &dto.CourseDescriptionResponse{
-// 			Course:           course.Name,
-// 			Description:      course.Description,
-// 			CategoryProgress: []dto.CategoryProgresResponse{},
-// 		}
-
-// 		// Buat map tambahan untuk menghitung total progress per kategori
-// 		categoryProgressMap := make(map[string]int)
-// 		categoryCountMap := make(map[string]int)
-
-// 		// Hitung progress untuk setiap lesson dalam course
-// 		for _, lesson := range course.Lessons {
-// 			progress := progressMap[lesson.ID]
-// 			category := lesson. // Ambil kategori langsung dari lesson
-
-// 			// Tambahkan progress ke kategori terkait di map
-// 			categoryProgressMap[category] += progress
-// 			categoryCountMap[category]++
-// 		}
-
-// 		// Isi CategoryProgress dengan data yang sudah ada, atau default 0 jika tidak ada
-// 		for _, category := range defaultCategories {
-// 			averageProgress := 0
-// 			if totalProgress, exists := categoryProgressMap[category]; exists {
-// 				if count := categoryCountMap[category]; count > 0 {
-// 					averageProgress = totalProgress / count
-// 				}
-// 			}
-
-// 			response.CategoryProgress = append(response.CategoryProgress, dto.CategoryProgresResponse{
-// 				Category:           category,
-// 				ProgressPercentage: averageProgress,
-// 			})
-// 		}
-
-// 		responses = append(responses, response)
-// 	}
-
-// 	return responses, nil
-// }
