@@ -16,7 +16,7 @@ import (
 var jwtSecret = "SangatRahasia"
 
 type User struct {
-	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid();column:user_id" json:"user_id"`
 	Username  string    `gorm:"type:varchar(255);unique;not null" json:"username"`
 	Email     string    `gorm:"type:varchar(255);unique;not null" json:"email"`
 	Password  string    `gorm:"type:text;not null" json:"-"`
@@ -26,7 +26,7 @@ type User struct {
 }
 
 func (User) TableName() string {
-	return "users"
+	return "auth.user"
 }
 
 // func (u *User) ConvertStructToMap(user *User) map[string]interface{} {

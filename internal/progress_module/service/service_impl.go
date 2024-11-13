@@ -6,9 +6,8 @@ import (
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
-	"time"
-
 	"github.com/google/uuid"
+	"time"
 )
 
 type progressService struct {

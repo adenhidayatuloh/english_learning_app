@@ -3,8 +3,8 @@ package services
 import (
 	"encoding/json"
 	"english_app/internal/aggregator_module/dto"
-	courseDTO "english_app/internal/course_module/dto"
-	contentService "english_app/internal/course_module/service"
+	courseDTO "english_app/internal/learning_module/dto"
+	contentService "english_app/internal/learning_module/service"
 	progressService "english_app/internal/progress_module/service"
 	"english_app/pkg/errs"
 

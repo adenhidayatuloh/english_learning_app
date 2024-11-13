@@ -9,14 +9,15 @@ import (
 	authHandler "english_app/internal/auth_module/handler"
 	authRepo "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
 	authservice "english_app/internal/auth_module/services"
-	learningHandler "english_app/internal/course_module/handler"
-	coursepg "english_app/internal/course_module/repository/course_repository/course_pg"
-	exercisepg "english_app/internal/course_module/repository/exercise_repository/exercise_pg"
-	lessonpg "english_app/internal/course_module/repository/lesson_repository/lesson_pg"
-	summaryRepo "english_app/internal/course_module/repository/summary_repository/summary_pg"
-	videoRepo "english_app/internal/course_module/repository/video_repository/video_pg"
-	learningService "english_app/internal/course_module/service"
-	"english_app/internal/progress_module/event"
+	learningHandler "english_app/internal/learning_module/handler"
+	coursepg "english_app/internal/learning_module/repository/course_repository/course_pg"
+	exercisepg "english_app/internal/learning_module/repository/exercise_repository/exercise_pg"
+	lessonpg "english_app/internal/learning_module/repository/lesson_repository/lesson_pg"
+	summaryRepo "english_app/internal/learning_module/repository/summary_repository/summary_pg"
+	videoRepo "english_app/internal/learning_module/repository/video_repository/video_pg"
+	learningService "english_app/internal/learning_module/service"
+
+	//"english_app/internal/progress_module/event"
 	progressHandler "english_app/internal/progress_module/handler"
 	courseProgressPG "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
 	lessonProgressPG "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
@@ -80,7 +81,7 @@ func main() {
 	learningHandler.NewLessonHandler(v1, lessonService)
 	aiHandler.NewGrammarHandler(v1, aiService)
 
-	go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
+	//go event.ConsumeLessonUpdate(db, "progressupdate", progressService)
 	//go event.ConsumeUserCreated(db, "adduser", progressService)
 
 	r.Run()
