@@ -51,9 +51,12 @@ func (s *lessonService) ProcessLessonEvent(ctx context.Context, topic string, pa
 		response.Exp = lesson.Video.VideoExp
 		response.Point = lesson.Video.VideoPoin
 		response.VideoDuration = lesson.Video.VideoDuration
-	} else {
+	} else if payload.EventType == "exercise" {
 		response.Exp = lesson.Exercise.ExerciseExp
 		response.Point = lesson.Exercise.ExercisePoin
+	} else {
+		response.Exp = 0
+		response.Point = 0
 	}
 
 	return s.eventService.PublishLessonProgress(ctx, topic, response)

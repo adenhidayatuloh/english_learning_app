@@ -16,3 +16,7 @@ type UserReward struct {
 	HelpCount   int       `gorm:"column:help_count"`
 	HealthCount int       `gorm:"column:health_count"`
 }
+
+func (UserReward) TableName() string {
+	return "gamification.user_reward"
+}

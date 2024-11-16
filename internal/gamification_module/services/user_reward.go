@@ -4,16 +4,15 @@ import (
 	"english_app/internal/gamification_module/dto"
 	"english_app/internal/gamification_module/entity"
 	userreward "english_app/internal/gamification_module/repository/user_reward"
-	"errors"
 
 	"github.com/google/uuid"
 )
 
 type UserRewardService interface {
-	Create(input dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error)
+	Create(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error)
 	GetByID(userID uuid.UUID) (*dto.UserRewardResponse, error)
 	GetAll() ([]dto.UserRewardResponse, error)
-	Update(userID uuid.UUID, input dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error)
+	Update(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error)
 	Delete(id uint) error
 }
 
@@ -25,7 +24,7 @@ func NewUserRewardService(repo userreward.UserRewardRepository) UserRewardServic
 	return &userRewardService{repo}
 }
 
-func (s *userRewardService) Create(input dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error) {
+func (s *userRewardService) Create(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error) {
 	userReward := entity.UserReward{
 		UserID:      input.UserID,
 		TotalPoints: input.TotalPoints,
@@ -85,16 +84,29 @@ func (s *userRewardService) GetAll() ([]dto.UserRewardResponse, error) {
 	return responses, nil
 }
 
-func (s *userRewardService) Update(userID uuid.UUID, input dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error) {
-	userReward, err := s.repo.GetByUserID(userID)
+func (s *userRewardService) Update(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error) {
+	userReward, err := s.repo.GetByUserID(input.UserID)
 	if err != nil {
-		return nil, errors.New("user_reward not found")
+		createReward, er := s.Create(input)
+
+		if er != nil {
+			return nil, er
+		}
+
+		return &dto.UserRewardResponse{
+			ID:          createReward.ID,
+			UserID:      createReward.UserID,
+			TotalPoints: createReward.TotalPoints,
+			TotalExp:    createReward.TotalExp,
+			HelpCount:   createReward.HelpCount,
+			HealthCount: createReward.HealthCount,
+		}, nil
 	}
 
-	userReward.TotalPoints = input.TotalPoints
-	userReward.TotalExp = input.TotalExp
-	userReward.HelpCount = input.HelpCount
-	userReward.HealthCount = input.HealthCount
+	userReward.TotalPoints = userReward.TotalPoints + input.TotalPoints
+	userReward.TotalExp = userReward.TotalExp + input.TotalExp
+	// userReward.HelpCount = input.HelpCount
+	// userReward.HealthCount = input.HealthCount
 
 	err = s.repo.Update(userReward)
 	if err != nil {

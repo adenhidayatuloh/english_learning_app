@@ -10,6 +10,9 @@ import (
 	authHandler "english_app/internal/auth_module/handler"
 	authRepo "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
 	authservice "english_app/internal/auth_module/services"
+	eventGamification "english_app/internal/gamification_module/event"
+	gamificationPG "english_app/internal/gamification_module/repository/user_reward/user_reward_pg"
+	gamificationService "english_app/internal/gamification_module/services"
 	"english_app/internal/learning_module/event"
 	learningHandler "english_app/internal/learning_module/handler"
 	coursepg "english_app/internal/learning_module/repository/course_repository/course_pg"
@@ -45,6 +48,9 @@ func main() {
 	lessonProgressRepo := lessonProgressPG.NewLessonProgressRepository(db)
 	courseprogressRepo := courseProgressPG.NewCourseProgressRepository(db)
 	authRepo := authRepo.NewUserMySql(db)
+	gamificationRepo := gamificationPG.NewUserRewardRepository(db)
+	gamificationService := gamificationService.NewUserRewardService(gamificationRepo)
+
 	progressService := progressservice.NewProgressService(courseprogressRepo, lessonProgressRepo)
 	eventService := event.NewEventService([]string{"localhost:9097"})
 	contentService := learningService.NewContentService(courseRepo, lessonRepo, exerciseRepo, eventService)
@@ -91,7 +97,8 @@ func main() {
 	aiHandler.NewGrammarHandler(v1, aiService)
 
 	go eventProgress.ConsumeLessonUpdate(db, "progressupdate", progressService)
-	//go event.ConsumeUserCreated(db, "adduser", progressService)
+
+	go eventGamification.ConsumeUserRewardUpdate(db, "progressupdate", gamificationService)
 
 	r.Run()
 
