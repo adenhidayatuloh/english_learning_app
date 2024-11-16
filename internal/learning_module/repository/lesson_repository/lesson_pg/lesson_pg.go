@@ -31,7 +31,7 @@ func (r *lessonPostgres) FindByCourseID(courseID uuid.UUID) ([]*entity.Lesson, e
 
 func (r *lessonPostgres) FindLessonByID(lessonID uuid.UUID) (*entity.Lesson, errs.MessageErr) {
 	var lesson entity.Lesson
-	err := r.db.Preload("Video").Preload("Exercise").Preload("Summary").Where("id = ?", lessonID).First(&lesson).Error
+	err := r.db.Preload("Video").Preload("Exercise").Preload("Summary").Where("lesson_id = ?", lessonID).First(&lesson).Error
 
 	if err != nil {
 		return nil, errs.NewNotFound("Lesson not found")
@@ -53,7 +53,7 @@ func (r *lessonPostgres) CreateLesson(lesson *entity.Lesson) errs.MessageErr {
 
 func (r *lessonPostgres) GetLessonByID(id uuid.UUID) (*entity.Lesson, errs.MessageErr) {
 	var lesson entity.Lesson
-	err := r.db.Preload("Video").Preload("Exercise").Preload("Summary").First(&lesson, "id = ?", id).Error
+	err := r.db.Preload("Video").Preload("Exercise").Preload("Summary").First(&lesson, "lesson_id = ?", id).Error
 
 	if err != nil {
 		return nil, errs.NewBadRequest("Cannot find lesson")
@@ -72,7 +72,7 @@ func (r *lessonPostgres) UpdateLesson(lesson *entity.Lesson) errs.MessageErr {
 }
 
 func (r *lessonPostgres) DeleteLesson(id uuid.UUID) errs.MessageErr {
-	err := r.db.Delete(&entity.Lesson{}, "id = ?", id).Error
+	err := r.db.Delete(&entity.Lesson{}, "lesson_id = ?", id).Error
 
 	if err != nil {
 		return errs.NewBadRequest("Cannot Delete lesson")

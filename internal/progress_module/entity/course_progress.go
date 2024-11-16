@@ -7,7 +7,7 @@ import (
 )
 
 type CourseProgress struct {
-	ID                 uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	ID                 uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4();column:course_progress_id" json:"id"`
 	UserID             uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
 	CourseID           uuid.UUID `gorm:"type:uuid;not null" json:"course_id"`
 	ProgressPercentage int       `gorm:"default:0" json:"progress_percentage"`
@@ -17,5 +17,5 @@ type CourseProgress struct {
 }
 
 func (CourseProgress) TableName() string {
-	return "learning_course_progress"
+	return "progress.course_progress"
 }

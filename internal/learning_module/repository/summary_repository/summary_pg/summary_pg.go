@@ -28,7 +28,7 @@ func (r *summaryPartRepository) Create(summary *entity.SummaryPart) errs.Message
 
 func (r *summaryPartRepository) FindByID(id uuid.UUID) (*entity.SummaryPart, errs.MessageErr) {
 	var summary entity.SummaryPart
-	err := r.db.First(&summary, "id = ?", id).Error
+	err := r.db.First(&summary, "summary_part_id = ?", id).Error
 
 	if err != nil {
 		return nil, errs.NewBadRequest("Cannot fint summary with id " + id.String())
@@ -45,7 +45,7 @@ func (r *summaryPartRepository) Update(oldSummary *entity.SummaryPart, newSummar
 }
 
 func (r *summaryPartRepository) Delete(id uuid.UUID) errs.MessageErr {
-	err := r.db.Delete(&entity.SummaryPart{}, "id = ?", id).Error
+	err := r.db.Delete(&entity.SummaryPart{}, "summary_part_id = ?", id).Error
 
 	if err != nil {
 		return errs.NewBadRequest("Cannot Delete Summary")

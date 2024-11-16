@@ -43,6 +43,7 @@ type SummaryResponse struct {
 	SummaryID          uuid.UUID `json:"summary_id"`
 	SummaryDescription string    `json:"summary_description"`
 	IsCompleted        bool      `json:"is_completed"`
+	SummaryUrl         string    `json:"summary_url"`
 }
 
 type GetALessonResponse struct {

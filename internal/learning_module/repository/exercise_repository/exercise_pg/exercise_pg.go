@@ -20,7 +20,7 @@ func NewExercisePostgres(db *gorm.DB) exerciserepository.ExerciseRepository {
 
 func (r *exercisePostgres) FindByID(exerciseID uuid.UUID) (*entity.ExercisePart, errs.MessageErr) {
 	var exercise entity.ExercisePart
-	if err := r.db.Preload("Questions").Where("id = ?", exerciseID).First(&exercise).Error; err != nil {
+	if err := r.db.Preload("Questions").Where("exercise_part_id = ?", exerciseID).First(&exercise).Error; err != nil {
 		return nil, errs.NewNotFound("exercise not found")
 	}
 
@@ -39,7 +39,7 @@ func (r *exercisePostgres) CreateExercisePart(exercise *entity.ExercisePart) err
 
 func (r *exercisePostgres) GetExercisePartByID(id uuid.UUID) (*entity.ExercisePart, errs.MessageErr) {
 	var exercise entity.ExercisePart
-	if err := r.db.Preload("Questions").First(&exercise, "id = ?", id).Error; err != nil {
+	if err := r.db.Preload("Questions").First(&exercise, "exercise_part_id = ?", id).Error; err != nil {
 		return nil, errs.NewNotFound("exercise not found")
 	}
 	return &exercise, nil

@@ -8,11 +8,11 @@ import (
 )
 
 func (LessonProgress) TableName() string {
-	return "learning_lesson_progress"
+	return "progress.lesson_progress"
 }
 
 type LessonProgress struct {
-	ID                  uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	ID                  uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4();column:lesson_progress_id" json:"id"`
 	UserID              uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
 	LessonID            uuid.UUID `gorm:"type:uuid;not null" json:"lesson_id"`
 	CourseID            uuid.UUID `gorm:"type:uuid;" json:"course_id"`

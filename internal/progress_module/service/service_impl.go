@@ -6,8 +6,9 @@ import (
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type progressService struct {
@@ -93,7 +94,7 @@ func (s *progressService) CreateLessonProgress(userID, lessonID uuid.UUID, cours
 	return lessonProgress, nil
 }
 
-func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (*entity.LessonProgress, errs.MessageErr) {
+func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressRequest) (*entity.LessonProgress, errs.MessageErr) {
 	oldProgress, err := s.lessonProgressRepo.GetByUserAndLesson(payload.UserID, payload.LessonID)
 
 	if err != nil {
@@ -108,13 +109,23 @@ func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressDTO) (
 	}
 
 	newProgress := &entity.LessonProgress{
-		ID:                  oldProgress.ID,
-		LessonID:            payload.LessonID,
-		UserID:              payload.UserID,
-		IsVideoCompleted:    payload.IsVideoCompleted,
-		IsExerciseCompleted: payload.IsExerciseCompleted,
-		IsSummaryCompleted:  payload.IsSummaryCompleted,
-		UpdatedAt:           time.Now(),
+		ID:       oldProgress.ID,
+		LessonID: payload.LessonID,
+		UserID:   payload.UserID,
+		// IsVideoCompleted:    payload.IsVideoCompleted,
+		// IsExerciseCompleted: payload.IsExerciseCompleted,
+		// IsSummaryCompleted:  payload.IsSummaryCompleted,
+		UpdatedAt: time.Now(),
+	}
+
+	if payload.EventType == "video" {
+		newProgress.IsVideoCompleted = true
+	} else if payload.EventType == "exercise" {
+		newProgress.IsExerciseCompleted = true
+	} else if payload.EventType == "summary" {
+		newProgress.IsSummaryCompleted = true
+	} else {
+		return nil, errs.NewBadRequest("invalid event type")
 	}
 
 	response, err := s.lessonProgressRepo.UpdateLessonProgress(oldProgress, newProgress)

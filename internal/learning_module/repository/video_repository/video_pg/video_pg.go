@@ -30,7 +30,7 @@ func (r *videoPartRepository) CreateVideo(videoPart *entity.VideoPart) errs.Mess
 
 func (r *videoPartRepository) FindVideoByID(id uuid.UUID) (*entity.VideoPart, errs.MessageErr) {
 	var videoPart entity.VideoPart
-	if err := r.db.First(&videoPart, "id = ?", id).Error; err != nil {
+	if err := r.db.First(&videoPart, "video_part_id = ?", id).Error; err != nil {
 		return nil, errs.NewBadRequest("Video not found")
 	}
 	return &videoPart, nil

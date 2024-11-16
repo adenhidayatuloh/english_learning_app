@@ -28,11 +28,6 @@ func (h *VideoPartHandler) Create(c *gin.Context) {
 	var request dto.VideoPartRequest
 	requestJson := c.PostForm("request")
 
-	// request.Title = c.PostForm("title")
-	// request.Description = c.PostForm("description")
-	// request.VideoExp, _ = strconv.Atoi(c.PostForm("video_exp"))
-	// request.VideoPoin, _ = strconv.Atoi(c.PostForm("video_poin"))
-
 	if err := json.Unmarshal([]byte(requestJson), &request); err != nil {
 		c.JSON(http.StatusBadRequest, errs.NewBadRequest("Invalid Request Structure"))
 		return

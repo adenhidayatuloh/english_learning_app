@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"english_app/internal/learning_module/dto"
 	"english_app/internal/learning_module/entity"
+	"english_app/internal/learning_module/event"
 	lessonrepository "english_app/internal/learning_module/repository/lesson_repository"
 
 	"github.com/google/uuid"
@@ -18,6 +20,7 @@ type LessonService interface {
 	GetLessonByID(id uuid.UUID) (*dto.LessonResponse, errs.MessageErr)
 	UpdateLesson(id uuid.UUID, request dto.LessonRequest) (*dto.LessonResponse, errs.MessageErr)
 	DeleteLesson(id uuid.UUID) errs.MessageErr
+	ProcessLessonEvent(ctx context.Context, topic string, payload event.LessonProgressRequest) errs.MessageErr
 
 	// Create(request dto.VideoPartRequest) (*dto.VideoPartResponse, errs.MessageErr)
 	// FindByID(id uuid.UUID) (*dto.VideoPartResponse, errs.MessageErr)
@@ -26,8 +29,34 @@ type LessonService interface {
 }
 
 type lessonService struct {
-	lessonRepo lessonrepository.LessonRepository
+	lessonRepo   lessonrepository.LessonRepository
+	eventService event.EventService
 	//progressService progressservice.ProgressService
+}
+
+func (s *lessonService) ProcessLessonEvent(ctx context.Context, topic string, payload event.LessonProgressRequest) errs.MessageErr {
+	lesson, err := s.FindLessonByID(payload.LessonID)
+	if err != nil {
+		return err
+	}
+
+	response := event.LessonProgressResponse{
+		UserID:    payload.UserID,
+		LessonID:  payload.LessonID,
+		CourseID:  payload.CourseID,
+		EventType: payload.EventType,
+	}
+
+	if payload.EventType == "video" {
+		response.Exp = lesson.Video.VideoExp
+		response.Point = lesson.Video.VideoPoin
+		response.VideoDuration = lesson.Video.VideoDuration
+	} else {
+		response.Exp = lesson.Exercise.ExerciseExp
+		response.Point = lesson.Exercise.ExercisePoin
+	}
+
+	return s.eventService.PublishLessonProgress(ctx, topic, response)
 }
 
 // FindLessonByCourseID implements LessonService.
@@ -41,8 +70,11 @@ func (s *lessonService) FindLessonByCourseID(courseID uuid.UUID) ([]*entity.Less
 	return lessons, nil
 }
 
-func NewLessonService(lessonRepo lessonrepository.LessonRepository) LessonService {
-	return &lessonService{lessonRepo}
+func NewLessonService(lessonRepo lessonrepository.LessonRepository, eventService event.EventService) LessonService {
+	return &lessonService{
+		lessonRepo:   lessonRepo,
+		eventService: eventService,
+	}
 }
 
 func (s *lessonService) FindLessonByID(lessonID uuid.UUID) (*entity.Lesson, errs.MessageErr) {

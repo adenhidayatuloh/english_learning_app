@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"english_app/internal/learning_module/dto"
+	"english_app/internal/learning_module/event"
 	"english_app/internal/learning_module/service"
 
 	"english_app/pkg/common"
@@ -16,12 +18,13 @@ type LessonHandler struct {
 	LessonService service.LessonService
 }
 
-func NewLessonHandler(router *gin.RouterGroup, lessonService service.LessonService) {
-	handler := &LessonHandler{LessonService: lessonService}
-	router.POST("/lesson-parts", handler.CreateLesson)
-	router.GET("/lesson-parts/:id", handler.GetLessonByID)
-	router.PUT("/lesson-parts/:id", handler.UpdateLesson)
-	router.DELETE("/lesson-parts/:id", handler.DeleteLesson)
+func NewLessonHandler(lessonService service.LessonService) *LessonHandler {
+	return &LessonHandler{LessonService: lessonService}
+	// router.POST("/lesson-parts", handler.CreateLesson)
+	// router.GET("/lesson-parts/:id", handler.GetLessonByID)
+	// router.PUT("/lesson-parts/:id", handler.UpdateLesson)
+	// router.DELETE("/lesson-parts/:id", handler.DeleteLesson)
+	// router.PUT("/update_progress_lesson", handler.UpdateLessonProgressEvent)
 }
 
 // func (h *LessonHandler) GetLessonByID(c *gin.Context) {
@@ -111,4 +114,43 @@ func (h *LessonHandler) DeleteLesson(c *gin.Context) {
 	}
 
 	c.JSON(common.BuildResponse(http.StatusOK, nil))
+}
+
+func (h *LessonHandler) UpdateLessonProgressEvent(c *gin.Context) {
+
+	// lessonIDParam := c.Param("lesson_id")
+	// lessonID, err := uuid.Parse(lessonIDParam)
+	// errParse := errs.NewBadRequest("Invalid lesson ID format")
+	// if err != nil {
+	// 	c.JSON(errParse.StatusCode(), errParse)
+	// 	return
+	// }
+
+	userID, ok := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
+
+	if !ok {
+		newError := errs.NewBadRequest("Failed to get user data")
+		c.JSON(newError.StatusCode(), newError)
+		return
+	}
+
+	var updateLessonDto event.LessonProgressRequest
+
+	if err := c.ShouldBindJSON(&updateLessonDto); err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewUnprocessableEntity(err.Error()))
+		return
+	}
+
+	updateLessonDto.UserID = userID
+	//updateLessonDto.LessonID = lessonID
+
+	err2 := h.LessonService.ProcessLessonEvent(context.Background(), "progressupdate", updateLessonDto)
+
+	// response, err2 := h.progressService.UpdateLessonProgress(&updateLessonDto)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, updateLessonDto))
 }

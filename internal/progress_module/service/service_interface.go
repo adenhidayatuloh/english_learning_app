@@ -14,5 +14,5 @@ type ProgressService interface {
 	GetAllProgressByUserID(userID uuid.UUID) ([]*entity.LessonProgress, errs.MessageErr)
 	GetAllCourseProgressByUserID(userID uuid.UUID) ([]*entity.CourseProgress, errs.MessageErr)
 	CreateLessonProgress(userID, lessonID uuid.UUID, courseID uuid.UUID) (*entity.LessonProgress, error)
-	UpdateLessonProgress(payload *dto.LessonProgressDTO) (*entity.LessonProgress, errs.MessageErr)
+	UpdateLessonProgress(payload *dto.LessonProgressRequest) (*entity.LessonProgress, errs.MessageErr)
 }

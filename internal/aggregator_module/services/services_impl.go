@@ -60,6 +60,7 @@ func (s *aggregatorService) GetALessonDetail(lessonID uuid.UUID, userID uuid.UUI
 		SummaryID:          getLesson.Summary.ID,
 		SummaryDescription: getLesson.Summary.Description,
 		IsCompleted:        progressLesson.IsSummaryCompleted,
+		SummaryUrl:         getLesson.Summary.URL,
 	}
 
 	response := &dto.GetALessonResponse{

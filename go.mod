@@ -17,6 +17,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.48.1 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+	github.com/aws/aws-sdk-go v1.38.20 // indirect
 	github.com/bytedance/sonic v1.12.3 // indirect
 	github.com/bytedance/sonic/loader v0.2.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
@@ -50,6 +51,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
@@ -63,6 +65,8 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	github.com/u2takey/ffmpeg-go v0.5.0 // indirect
+	github.com/u2takey/go-utils v0.3.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.29.0 // indirect
@@ -88,6 +92,7 @@ require (
 	google.golang.org/grpc v1.66.2 // indirect
 	google.golang.org/grpc/stats/opentelemetry v0.0.0-20240907200651-3ffb98b2c93a // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
+	gopkg.in/vansante/go-ffprobe.v2 v2.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/postgres v1.5.9 // indirect
 	gorm.io/gorm v1.25.12 // indirect
