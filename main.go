@@ -52,7 +52,7 @@ func main() {
 	gamificationService := gamificationService.NewUserRewardService(gamificationRepo)
 
 	progressService := progressservice.NewProgressService(courseprogressRepo, lessonProgressRepo)
-	eventService := event.NewEventService([]string{"localhost:9097"})
+	eventService := event.NewEventService([]string{"host.docker.internal:9092"})
 	contentService := learningService.NewContentService(courseRepo, lessonRepo, exerciseRepo, eventService)
 	aggregateService := services.NewAggregatorService(contentService, progressService)
 	AggregateHandler := handler.AggregateHandler{

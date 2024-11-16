@@ -66,7 +66,7 @@ import (
 
 func ConsumeLessonUpdate(db *gorm.DB, topic string, lessonProgressService service.ProgressService) {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"localhost:9097"},
+		Brokers: []string{"host.docker.internal:9092"},
 		Topic:   topic,
 		GroupID: "lesson-update-group", // group id for Kafka
 	})
