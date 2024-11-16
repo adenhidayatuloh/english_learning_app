@@ -81,7 +81,7 @@ func ConsumeLessonUpdate(db *gorm.DB, topic string, lessonProgressService servic
 		log.Printf("Message received: %s\n", string(message.Value))
 
 		// Extract data from message (assuming it's JSON)
-		var payload dto.LessonProgressDTO
+		var payload dto.LessonProgressRequest
 		// Unmarshal message value
 		err = json.Unmarshal(message.Value, &payload)
 		if err != nil {
