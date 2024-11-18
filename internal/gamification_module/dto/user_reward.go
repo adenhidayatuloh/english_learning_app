@@ -18,3 +18,10 @@ type UserRewardResponse struct {
 	HelpCount   int       `json:"help_count"`
 	HealthCount int       `json:"health_count"`
 }
+
+type UserRewardLevelResponse struct {
+	Level        int `json:"level"`
+	CurrentExp   int `json:"current_exp"`
+	NextLevelExp int `json:"next_level_exp"`
+	TotalPoints  int `json:"total_points"`
+}

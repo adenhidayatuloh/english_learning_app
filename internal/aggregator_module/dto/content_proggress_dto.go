@@ -78,3 +78,9 @@ type CategoryProgresResponse struct {
 	Category           string `json:"category"`
 	ProgressPercentage int    `json:"progress_percentage"`
 }
+
+type GetLatestProgressResponse struct {
+	Status             string `json:"status"`
+	ProgressPercentage int    `json:"progress_percentage"`
+	LessonName         string `json:"lesson"`
+}

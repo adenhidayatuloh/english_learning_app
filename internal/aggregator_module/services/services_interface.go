@@ -12,4 +12,5 @@ type AggregateService interface {
 	GetALessonDetail(lessonID uuid.UUID, userID uuid.UUID) (*dto.GetALessonResponse, errs.MessageErr)
 	GetExerciseDetail(exerciseID uuid.UUID) (*dto.ExerciseDetail, errs.MessageErr)
 	GetCourseProgressSummary(userID uuid.UUID) (any, errs.MessageErr)
+	GetLatestLessonProgress(userID uuid.UUID) (*dto.GetLatestProgressResponse, errs.MessageErr)
 }

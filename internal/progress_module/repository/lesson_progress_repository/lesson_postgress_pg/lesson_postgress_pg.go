@@ -111,3 +111,19 @@ func (r *lessonProgressRepository) Create(lessonProgress *entity.LessonProgress)
 
 	return nil
 }
+
+func (r *lessonProgressRepository) GetLatestProgressByUserID(userID uuid.UUID) (*entity.LessonProgress, errs.MessageErr) {
+	var progress entity.LessonProgress
+	err := r.db.Where("user_id = ?", userID).
+		Order("updated_at DESC").
+		First(&progress).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errs.NewNotFound("No progress found for the given user ID")
+		}
+		return nil, errs.NewInternalServerError("Failed to fetch latest progress")
+	}
+
+	return &progress, nil
+}

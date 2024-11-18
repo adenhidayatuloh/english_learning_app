@@ -4,16 +4,19 @@ import (
 	"english_app/internal/gamification_module/dto"
 	"english_app/internal/gamification_module/entity"
 	userreward "english_app/internal/gamification_module/repository/user_reward"
+	"english_app/pkg/common"
+	"english_app/pkg/errs"
 
 	"github.com/google/uuid"
 )
 
 type UserRewardService interface {
-	Create(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error)
-	GetByID(userID uuid.UUID) (*dto.UserRewardResponse, error)
-	GetAll() ([]dto.UserRewardResponse, error)
-	Update(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error)
-	Delete(id uint) error
+	Create(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr)
+	GetByID(userID uuid.UUID) (*dto.UserRewardResponse, errs.MessageErr)
+	GetAll() ([]dto.UserRewardResponse, errs.MessageErr)
+	Update(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr)
+	Delete(id uint) errs.MessageErr
+	GetUserLevel(userID uuid.UUID) (*dto.UserRewardLevelResponse, errs.MessageErr)
 }
 
 type userRewardService struct {
@@ -24,7 +27,7 @@ func NewUserRewardService(repo userreward.UserRewardRepository) UserRewardServic
 	return &userRewardService{repo}
 }
 
-func (s *userRewardService) Create(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error) {
+func (s *userRewardService) Create(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr) {
 	userReward := entity.UserReward{
 		UserID:      input.UserID,
 		TotalPoints: input.TotalPoints,
@@ -47,7 +50,7 @@ func (s *userRewardService) Create(input *dto.CreateUserRewardRequest) (*dto.Use
 	}, nil
 }
 
-func (s *userRewardService) GetByID(userID uuid.UUID) (*dto.UserRewardResponse, error) {
+func (s *userRewardService) GetByID(userID uuid.UUID) (*dto.UserRewardResponse, errs.MessageErr) {
 	userReward, err := s.repo.GetByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -63,7 +66,7 @@ func (s *userRewardService) GetByID(userID uuid.UUID) (*dto.UserRewardResponse, 
 	}, nil
 }
 
-func (s *userRewardService) GetAll() ([]dto.UserRewardResponse, error) {
+func (s *userRewardService) GetAll() ([]dto.UserRewardResponse, errs.MessageErr) {
 	userRewards, err := s.repo.GetAll()
 	if err != nil {
 		return nil, err
@@ -84,7 +87,7 @@ func (s *userRewardService) GetAll() ([]dto.UserRewardResponse, error) {
 	return responses, nil
 }
 
-func (s *userRewardService) Update(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, error) {
+func (s *userRewardService) Update(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr) {
 	userReward, err := s.repo.GetByUserID(input.UserID)
 	if err != nil {
 		createReward, er := s.Create(input)
@@ -123,6 +126,26 @@ func (s *userRewardService) Update(input *dto.CreateUserRewardRequest) (*dto.Use
 	}, nil
 }
 
-func (s *userRewardService) Delete(id uint) error {
+func (s *userRewardService) Delete(id uint) errs.MessageErr {
 	return s.repo.Delete(id)
+}
+
+func (s *userRewardService) GetUserLevel(userID uuid.UUID) (*dto.UserRewardLevelResponse, errs.MessageErr) {
+	// Ambil data user reward berdasarkan user ID
+	userReward, err := s.repo.GetByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Hitung level
+	level, nextLevelExp := common.CalculateLevel(userReward.TotalExp)
+
+	// Buat response
+	response := &dto.UserRewardLevelResponse{
+		Level:        level,
+		CurrentExp:   userReward.TotalExp,
+		NextLevelExp: nextLevelExp,
+		TotalPoints:  userReward.TotalPoints,
+	}
+	return response, nil
 }

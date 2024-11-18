@@ -137,3 +137,27 @@ func (s *progressService) UpdateLessonProgress(payload *dto.LessonProgressReques
 	return response, nil
 
 }
+
+func (s *progressService) GetLatestProgress(userID uuid.UUID) (*dto.LessonProgressResponse, errs.MessageErr) {
+	progress, err := s.lessonProgressRepo.GetLatestProgressByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Map entity to DTO
+	response := &dto.LessonProgressResponse{
+		ID:                  progress.ID,
+		UserID:              progress.UserID,
+		LessonID:            progress.LessonID,
+		CourseID:            progress.CourseID,
+		ProgressPercentage:  progress.ProgressPercentage,
+		IsCompleted:         progress.IsCompleted,
+		IsVideoCompleted:    progress.IsVideoCompleted,
+		IsExerciseCompleted: progress.IsExerciseCompleted,
+		IsSummaryCompleted:  progress.IsSummaryCompleted,
+		CreatedAt:           progress.CreatedAt,
+		UpdatedAt:           progress.UpdatedAt,
+	}
+
+	return response, nil
+}

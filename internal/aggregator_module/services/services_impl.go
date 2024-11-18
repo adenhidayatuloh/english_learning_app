@@ -16,6 +16,37 @@ type aggregatorService struct {
 	progressService.ProgressService
 }
 
+// GetLatestProgress implements AggregateService.
+// Subtle: this method shadows the method (ProgressService).GetLatestProgress of aggregatorService.ProgressService.
+func (s *aggregatorService) GetLatestLessonProgress(userID uuid.UUID) (*dto.GetLatestProgressResponse, errs.MessageErr) {
+
+	progress, err := s.GetLatestProgress(userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	lesson, err := s.GetLessonByID(progress.LessonID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	status := ""
+
+	if progress.ProgressPercentage == 100 {
+		status = "completed"
+	} else {
+		status = "ongoing"
+	}
+
+	return &dto.GetLatestProgressResponse{
+		Status:             status,
+		ProgressPercentage: progress.ProgressPercentage,
+		LessonName:         lesson.Name,
+	}, nil
+}
+
 func NewAggregatorService(contentService contentService.ContentManagementService, progressService progressService.ProgressService) AggregateService {
 	return &aggregatorService{
 		ContentManagementService: contentService,

@@ -11,6 +11,7 @@ import (
 	authRepo "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
 	authservice "english_app/internal/auth_module/services"
 	eventGamification "english_app/internal/gamification_module/event"
+	gamificationHandler "english_app/internal/gamification_module/handler"
 	gamificationPG "english_app/internal/gamification_module/repository/user_reward/user_reward_pg"
 	gamificationService "english_app/internal/gamification_module/services"
 	"english_app/internal/learning_module/event"
@@ -52,7 +53,7 @@ func main() {
 	gamificationService := gamificationService.NewUserRewardService(gamificationRepo)
 
 	progressService := progressservice.NewProgressService(courseprogressRepo, lessonProgressRepo)
-	eventService := event.NewEventService([]string{"host.docker.internal:9092"})
+	eventService := event.NewEventService([]string{"localhost:9093"})
 	contentService := learningService.NewContentService(courseRepo, lessonRepo, exerciseRepo, eventService)
 	aggregateService := services.NewAggregatorService(contentService, progressService)
 	AggregateHandler := handler.AggregateHandler{
@@ -67,6 +68,7 @@ func main() {
 	r.GET("/api/lesson/:Lesson_ID", authService.Authentication(), AggregateHandler.GetALessonDetail)
 	r.GET("/api/exercise/:exerciseID", authService.Authentication(), AggregateHandler.GetExerciseByID)
 	r.GET("/api/courses/summary", authService.Authentication(), AggregateHandler.GetCourseProgressSummary)
+	r.GET("/api/v1/progress/latest", authService.Authentication(), AggregateHandler.GetLatestLessonProgress)
 	r.POST("/api/auth/register", authHandler.Register)
 	r.POST("/api/auth/login", authHandler.Login)
 	// Setup Repository dan Service
@@ -95,6 +97,10 @@ func main() {
 	v1.PUT("/update_progress_lesson", authService.Authentication(), learningLessonHandler.UpdateLessonProgressEvent)
 
 	aiHandler.NewGrammarHandler(v1, aiService)
+
+	gamificationHandler := gamificationHandler.NewUserRewardHandler(gamificationService)
+
+	v1.GET("/gamification", authService.Authentication(), gamificationHandler.GetUserLevel)
 
 	go eventProgress.ConsumeLessonUpdate(db, "progressupdate", progressService)
 

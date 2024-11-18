@@ -81,3 +81,16 @@ func (h *AggregateHandler) GetCourseProgressSummary(c *gin.Context) {
 
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }
+
+func (h *AggregateHandler) GetLatestLessonProgress(c *gin.Context) {
+
+	userID := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
+
+	data, err := h.AggregateService.GetLatestLessonProgress(userID)
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, data))
+}

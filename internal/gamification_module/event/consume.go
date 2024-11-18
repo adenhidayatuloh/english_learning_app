@@ -24,7 +24,7 @@ type GetMessageFromEvent struct {
 
 func ConsumeUserRewardUpdate(db *gorm.DB, topic string, userRewardService services.UserRewardService) {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"host.docker.internal:9092"},
+		Brokers: []string{"localhost:9093"},
 		Topic:   topic,
 		GroupID: "gamification-update-group", // group id for Kafka
 	})
