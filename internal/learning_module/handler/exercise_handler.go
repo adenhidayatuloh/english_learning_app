@@ -18,7 +18,7 @@ type ExercisePartHandler struct {
 func NewExercisePartHandler(router *gin.RouterGroup, service service.ExerciseService) {
 	handler := ExercisePartHandler{service}
 	router.POST("/exercise-parts", handler.CreateExercisePart)
-	router.GET("/exercise-parts/:id", handler.GetExercisePartByID)
+	//router.GET("/exercise-parts/:id", handler.GetExercisePartByID)
 	router.PUT("/exercise-parts/:id", handler.UpdateExercisePart)
 	router.DELETE("/exercise-parts/:id", handler.DeleteExercisePart)
 }

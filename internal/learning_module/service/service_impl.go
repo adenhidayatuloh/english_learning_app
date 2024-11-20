@@ -13,7 +13,7 @@ type ServiceImpl struct {
 	ExerciseService
 }
 
-func NewContentService(courseRepo courserepository.CourseRepository, lessonRepo lessonrepository.LessonRepository, exerciseRepo exerciserepository.ExerciseRepository, eventService event.EventService) ContentManagementService {
+func NewLearningService(courseRepo courserepository.CourseRepository, lessonRepo lessonrepository.LessonRepository, exerciseRepo exerciserepository.ExerciseRepository, eventService event.EventService) ContentManagementService {
 	return &ServiceImpl{
 		CourseService:   NewCourseService(courseRepo, lessonRepo),
 		LessonService:   NewLessonService(lessonRepo, eventService),

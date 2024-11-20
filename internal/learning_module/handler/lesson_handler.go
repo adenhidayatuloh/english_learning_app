@@ -18,13 +18,20 @@ type LessonHandler struct {
 	LessonService service.LessonService
 }
 
-func NewLessonHandler(lessonService service.LessonService) *LessonHandler {
-	return &LessonHandler{LessonService: lessonService}
+func NewLessonHandler(apiGroup *gin.RouterGroup, lessonService service.LessonService) {
+	learningLessonHandler := LessonHandler{LessonService: lessonService}
+
+	apiGroup.POST("/lesson-parts", learningLessonHandler.CreateLesson)
+	apiGroup.GET("/lesson-parts/:id", learningLessonHandler.GetLessonByID)
+	apiGroup.PUT("/lesson-parts/:id", learningLessonHandler.UpdateLesson)
+	apiGroup.DELETE("/lesson-parts/:id", learningLessonHandler.DeleteLesson)
+	apiGroup.PUT("/update_progress_lesson", learningLessonHandler.UpdateLessonProgressEvent)
+
 	// router.POST("/lesson-parts", handler.CreateLesson)
 	// router.GET("/lesson-parts/:id", handler.GetLessonByID)
 	// router.PUT("/lesson-parts/:id", handler.UpdateLesson)
 	// router.DELETE("/lesson-parts/:id", handler.DeleteLesson)
-	// router.PUT("/update_progress_lesson", handler.UpdateLessonProgressEvent)
+
 }
 
 // func (h *LessonHandler) GetLessonByID(c *gin.Context) {

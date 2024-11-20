@@ -14,8 +14,10 @@ type UserRewardHandler struct {
 	service services.UserRewardService
 }
 
-func NewUserRewardHandler(service services.UserRewardService) *UserRewardHandler {
-	return &UserRewardHandler{service}
+func NewUserRewardHandler(apiGroup *gin.RouterGroup, service services.UserRewardService) {
+	UserRewardHandler := &UserRewardHandler{service}
+
+	apiGroup.GET("/gamification", UserRewardHandler.GetUserLevel)
 }
 
 func (h *UserRewardHandler) Create(c *gin.Context) {

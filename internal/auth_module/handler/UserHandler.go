@@ -14,8 +14,10 @@ type AuthHandler struct {
 	authService services.AuthService
 }
 
-func NewAuthHandler(userService services.AuthService) *AuthHandler {
-	return &AuthHandler{userService}
+func NewAuthHandler(router *gin.RouterGroup, userService services.AuthService) {
+	authHandler := AuthHandler{userService}
+	router.POST("/auth/register", authHandler.Register)
+	router.POST("/auth/login", authHandler.Login)
 }
 
 func (u *AuthHandler) Register(ctx *gin.Context) {

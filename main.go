@@ -1,116 +1,106 @@
 package main
 
-//
 import (
-	"english_app/infra/postgresql"
-	"english_app/internal/aggregator_module/handler"
-	"english_app/internal/aggregator_module/services"
-	aiHandler "english_app/internal/ai_module/handler"
-	aiService "english_app/internal/ai_module/service"
-	authHandler "english_app/internal/auth_module/handler"
-	authRepo "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
-	authservice "english_app/internal/auth_module/services"
-	eventGamification "english_app/internal/gamification_module/event"
-	gamificationHandler "english_app/internal/gamification_module/handler"
-	gamificationPG "english_app/internal/gamification_module/repository/user_reward/user_reward_pg"
-	gamificationService "english_app/internal/gamification_module/services"
-	"english_app/internal/learning_module/event"
-	learningHandler "english_app/internal/learning_module/handler"
-	coursepg "english_app/internal/learning_module/repository/course_repository/course_pg"
-	exercisepg "english_app/internal/learning_module/repository/exercise_repository/exercise_pg"
-	lessonpg "english_app/internal/learning_module/repository/lesson_repository/lesson_pg"
-	summaryRepo "english_app/internal/learning_module/repository/summary_repository/summary_pg"
-	videoRepo "english_app/internal/learning_module/repository/video_repository/video_pg"
-	learningService "english_app/internal/learning_module/service"
-	eventProgress "english_app/internal/progress_module/event"
-	courseProgressPG "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
-	lessonProgressPG "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
-	progressservice "english_app/internal/progress_module/service"
-	"english_app/pkg/gcloud"
+	gamificationHandlerPkg "english_app/internal/gamification_module/handler"
 	"log"
+
+	"english_app/infra/postgresql"
+	"english_app/pkg/gcloud"
+
+	// Repositories
+	authRepositoryPkg "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
+	gamificationRepositoryPkg "english_app/internal/gamification_module/repository/user_reward/user_reward_pg"
+	courseRepositoryPkg "english_app/internal/learning_module/repository/course_repository/course_pg"
+	exerciseRepositoryPkg "english_app/internal/learning_module/repository/exercise_repository/exercise_pg"
+	lessonRepositoryPkg "english_app/internal/learning_module/repository/lesson_repository/lesson_pg"
+	summaryRepositoryPkg "english_app/internal/learning_module/repository/summary_repository/summary_pg"
+	videoRepositoryPkg "english_app/internal/learning_module/repository/video_repository/video_pg"
+	courseProgressRepositoryPkg "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
+	lessonProgressRepositoryPkg "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
+
+	// Services
+	aiServicePkg "english_app/internal/ai_module/service"
+	authServicePkg "english_app/internal/auth_module/services"
+	gamificationServicePkg "english_app/internal/gamification_module/services"
+	learningServicePkg "english_app/internal/learning_module/service"
+
+	aggregatorHandlerPkg "english_app/internal/aggregator_module/handler"
+	// Handlers
+	aiHandlerPkg "english_app/internal/ai_module/handler"
+	authHandlerPkg "english_app/internal/auth_module/handler"
+	learningHandlerPkg "english_app/internal/learning_module/handler"
+
+	// Aggregator and Events
+	aggregatorServicePkg "english_app/internal/aggregator_module/services"
+	eventGamificationPkg "english_app/internal/gamification_module/event"
+	eventLearningPkg "english_app/internal/learning_module/event"
+	eventProgressPkg "english_app/internal/progress_module/event"
+
+	progressServicePkg "english_app/internal/progress_module/service"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-
+	// --- Database and Cloud Storage Initialization ---
 	db := postgresql.GetDBInstance()
 	gcsUploader, err := gcloud.NewGCSUploader()
 	if err != nil {
 		log.Fatalf(err.Message())
 	}
 
-	r := gin.Default()
-	r.MaxMultipartMemory = 1 << 30
-	courseRepo := coursepg.NewCourseRepository(db)
-	lessonRepo := lessonpg.NewLessonRepository(db)
-	exerciseRepo := exercisepg.NewExercisePostgres(db)
-	lessonProgressRepo := lessonProgressPG.NewLessonProgressRepository(db)
-	courseprogressRepo := courseProgressPG.NewCourseProgressRepository(db)
-	authRepo := authRepo.NewUserMySql(db)
-	gamificationRepo := gamificationPG.NewUserRewardRepository(db)
-	gamificationService := gamificationService.NewUserRewardService(gamificationRepo)
+	// --- Router Initialization ---
+	router := gin.Default()
+	router.MaxMultipartMemory = 1 << 30 // Set maximum file upload size
 
-	progressService := progressservice.NewProgressService(courseprogressRepo, lessonProgressRepo)
-	eventService := event.NewEventService([]string{"localhost:9093"})
-	contentService := learningService.NewContentService(courseRepo, lessonRepo, exerciseRepo, eventService)
-	aggregateService := services.NewAggregatorService(contentService, progressService)
-	AggregateHandler := handler.AggregateHandler{
-		AggregateService: aggregateService,
-	}
-	authService := authservice.NewAuthService(authRepo)
-	authHandler := authHandler.NewAuthHandler(authService)
-	//progressHandler := progressHandler.NewProgressHandler(progressService)
+	// --- Repository Initialization ---
+	authRepository := authRepositoryPkg.NewUserMySql(db)
+	courseRepository := courseRepositoryPkg.NewCourseRepository(db)
+	lessonRepository := lessonRepositoryPkg.NewLessonRepository(db)
+	exerciseRepository := exerciseRepositoryPkg.NewExercisePostgres(db)
+	lessonProgressRepository := lessonProgressRepositoryPkg.NewLessonProgressRepository(db)
+	courseProgressRepository := courseProgressRepositoryPkg.NewCourseProgressRepository(db)
+	gamificationRepository := gamificationRepositoryPkg.NewUserRewardRepository(db)
+	videoRepository := videoRepositoryPkg.NewVideoPartRepository(db)
+	summaryRepository := summaryRepositoryPkg.NewSummaryPartRepository(db)
 
-	//r.PUT("/api/update_progress_lesson", authService.Authentication())
-	r.GET("/api/courses", authService.Authentication(), AggregateHandler.GetCourseByNameAndCategory)
-	r.GET("/api/lesson/:Lesson_ID", authService.Authentication(), AggregateHandler.GetALessonDetail)
-	r.GET("/api/exercise/:exerciseID", authService.Authentication(), AggregateHandler.GetExerciseByID)
-	r.GET("/api/courses/summary", authService.Authentication(), AggregateHandler.GetCourseProgressSummary)
-	r.GET("/api/v1/progress/latest", authService.Authentication(), AggregateHandler.GetLatestLessonProgress)
-	r.POST("/api/auth/register", authHandler.Register)
-	r.POST("/api/auth/login", authHandler.Login)
-	// Setup Repository dan Service
-	videoPartRepo := videoRepo.NewVideoPartRepository(db)
-	videoPartService := learningService.NewVideoPartService(videoPartRepo, gcsUploader)
+	// --- Service Initialization ---
+	authService := authServicePkg.NewAuthService(authRepository)
+	progressService := progressServicePkg.NewProgressService(courseProgressRepository, lessonProgressRepository)
+	eventLearningService := eventLearningPkg.NewEventService([]string{"localhost:9093"})
+	contentService := learningServicePkg.NewLearningService(courseRepository, lessonRepository, exerciseRepository, eventLearningService)
+	aggregatorService := aggregatorServicePkg.NewAggregatorService(contentService, progressService)
+	gamificationService := gamificationServicePkg.NewUserRewardService(gamificationRepository)
+	videoPartService := learningServicePkg.NewVideoPartService(videoRepository, gcsUploader)
+	summaryPartService := learningServicePkg.NewSummaryPartService(summaryRepository, gcsUploader)
+	exercisePartService := learningServicePkg.NewExerciseService(exerciseRepository)
+	lessonService := learningServicePkg.NewLessonService(lessonRepository, eventLearningService)
+	aiGrammarService := aiServicePkg.NewGrammarService()
 
-	summaryPartRepo := summaryRepo.NewSummaryPartRepository(db)
-	summaryPartService := learningService.NewSummaryPartService(summaryPartRepo, gcsUploader)
+	// --- Handler Initialization ---
 
-	exercisePartService := learningService.NewExerciseService(exerciseRepo)
+	// --- Routes Setup ---
+	apiGroup := router.Group("/api/v1")
 
-	lessonService := learningService.NewLessonService(lessonRepo, eventService)
-	aiService := aiService.NewGrammarService()
+	publicGroup := apiGroup.Group("")
 
-	// Setup Handler
-	v1 := r.Group("/api/v1")
-	learningHandler.NewVideoPartHandler(v1, videoPartService)
-	learningHandler.NewSummaryPartHandler(v1, summaryPartService)
-	learningHandler.NewExercisePartHandler(v1, exercisePartService)
-	learningLessonHandler := learningHandler.NewLessonHandler(lessonService)
+	protectedGroup := apiGroup.Group("")
+	protectedGroup.Use(authService.Authentication())
 
-	v1.POST("/lesson-parts", learningLessonHandler.CreateLesson)
-	v1.GET("/lesson-parts/:id", learningLessonHandler.GetLessonByID)
-	v1.PUT("/lesson-parts/:id", learningLessonHandler.UpdateLesson)
-	v1.DELETE("/lesson-parts/:id", learningLessonHandler.DeleteLesson)
-	v1.PUT("/update_progress_lesson", authService.Authentication(), learningLessonHandler.UpdateLessonProgressEvent)
+	authHandlerPkg.NewAuthHandler(publicGroup, authService)
+	aggregatorHandlerPkg.NewAggregatorHandler(protectedGroup, aggregatorService)
+	gamificationHandlerPkg.NewUserRewardHandler(protectedGroup, gamificationService)
+	learningHandlerPkg.NewVideoPartHandler(protectedGroup, videoPartService)
+	learningHandlerPkg.NewSummaryPartHandler(protectedGroup, summaryPartService)
+	learningHandlerPkg.NewExercisePartHandler(protectedGroup, exercisePartService)
+	learningHandlerPkg.NewLessonHandler(protectedGroup, lessonService)
+	aiHandlerPkg.NewGrammarHandler(protectedGroup, aiGrammarService)
 
-	aiHandler.NewGrammarHandler(v1, aiService)
+	// --- Event Consumers ---
+	go eventProgressPkg.ConsumeLessonUpdate(db, "progressupdate", progressService)
+	go eventGamificationPkg.ConsumeUserRewardUpdate(db, "progressupdate", gamificationService)
 
-	gamificationHandler := gamificationHandler.NewUserRewardHandler(gamificationService)
-
-	v1.GET("/gamification", authService.Authentication(), gamificationHandler.GetUserLevel)
-
-	go eventProgress.ConsumeLessonUpdate(db, "progressupdate", progressService)
-
-	go eventGamification.ConsumeUserRewardUpdate(db, "progressupdate", gamificationService)
-
-	r.Run()
-
+	// --- Run the Server ---
+	router.Run()
 }
-
-//
-//func main() {
-//	fmt.Println(common.GetVideoData("https://storage.googleapis.com/video_english/db4b62b1-f071-4a8c-9615-dd80e49166ea"))
-//}

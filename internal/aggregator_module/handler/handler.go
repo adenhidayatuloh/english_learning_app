@@ -12,13 +12,24 @@ import (
 	"github.com/google/uuid"
 )
 
-// // CourseHandler handles the course-related API requests
-type AggregateHandler struct {
+type AggregatorHandler struct {
 	AggregateService services.AggregateService
 }
 
+func NewAggregatorHandler(apiGroup *gin.RouterGroup, aggregateService services.AggregateService) {
+	aggregatorHandler := &AggregatorHandler{
+		AggregateService: aggregateService,
+	}
+
+	apiGroup.GET("/courses", aggregatorHandler.GetCourseByNameAndCategory)
+	apiGroup.GET("/lesson/:lessonID", aggregatorHandler.GetALessonDetail)
+	apiGroup.GET("/exercise-parts/:exerciseID", aggregatorHandler.GetExerciseByID)
+	apiGroup.GET("/courses/summary", aggregatorHandler.GetCourseProgressSummary)
+	apiGroup.GET("/progress/latest", aggregatorHandler.GetLatestLessonProgress)
+}
+
 // GetCourseByNameAndCategory retrieves a course by name and category
-func (h *AggregateHandler) GetCourseByNameAndCategory(c *gin.Context) {
+func (h *AggregatorHandler) GetCourseByNameAndCategory(c *gin.Context) {
 	var courseRequest dto.GetContentProgressRequest
 	userID := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 	courseRequest.CourseName = c.Query("coursename")
@@ -33,11 +44,12 @@ func (h *AggregateHandler) GetCourseByNameAndCategory(c *gin.Context) {
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }
 
-func (h *AggregateHandler) GetALessonDetail(c *gin.Context) {
-	lessonIDParam := c.Param("Lesson_ID")
+func (h *AggregatorHandler) GetALessonDetail(c *gin.Context) {
+	lessonIDParam := c.Param("lessonID")
 	lessonID, err := uuid.Parse(lessonIDParam)
-	errParse := errs.NewBadRequest("Invalid lesson ID format")
+
 	if err != nil {
+		errParse := errs.NewBadRequest("Invalid lesson ID format")
 		c.JSON(errParse.StatusCode(), errParse)
 		return
 	}
@@ -52,7 +64,7 @@ func (h *AggregateHandler) GetALessonDetail(c *gin.Context) {
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }
 
-func (h *AggregateHandler) GetExerciseByID(c *gin.Context) {
+func (h *AggregatorHandler) GetExerciseByID(c *gin.Context) {
 	exerciseIDParam := c.Param("exerciseID")
 	exerciseID, err := uuid.Parse(exerciseIDParam)
 	errParse := errs.NewBadRequest("Invalid exercise ID format")
@@ -69,7 +81,7 @@ func (h *AggregateHandler) GetExerciseByID(c *gin.Context) {
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }
 
-func (h *AggregateHandler) GetCourseProgressSummary(c *gin.Context) {
+func (h *AggregatorHandler) GetCourseProgressSummary(c *gin.Context) {
 
 	userID := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 
@@ -82,7 +94,7 @@ func (h *AggregateHandler) GetCourseProgressSummary(c *gin.Context) {
 	c.JSON(common.BuildResponse(http.StatusOK, data))
 }
 
-func (h *AggregateHandler) GetLatestLessonProgress(c *gin.Context) {
+func (h *AggregatorHandler) GetLatestLessonProgress(c *gin.Context) {
 
 	userID := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 
