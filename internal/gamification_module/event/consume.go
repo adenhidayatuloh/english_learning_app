@@ -22,7 +22,7 @@ type GetMessageFromEvent struct {
 	VideoDuration int       `json:"video_duration"`
 }
 
-func ConsumeUserRewardUpdate(db *gorm.DB, topic string, userRewardService services.UserRewardService) {
+func ConsumeUserRewardUpdate(db *gorm.DB, topic string, userRewardService services.GamificationService) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{"localhost:9093"},
 		Topic:   topic,
@@ -54,7 +54,7 @@ func ConsumeUserRewardUpdate(db *gorm.DB, topic string, userRewardService servic
 		}
 
 		// Call CreateLessonProgress to insert into database
-		_, err = userRewardService.Update(payload)
+		_, err = userRewardService.UpdateUserReward(payload)
 		if err != nil {
 			log.Printf("Error creating lesson progress: %v\n", err)
 			continue

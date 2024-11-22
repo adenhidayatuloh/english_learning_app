@@ -1,7 +1,6 @@
 package main
 
 import (
-	gamificationHandlerPkg "english_app/internal/gamification_module/handler"
 	"log"
 
 	"english_app/infra/postgresql"
@@ -9,6 +8,7 @@ import (
 
 	// Repositories
 	authRepositoryPkg "english_app/internal/auth_module/repository/authRepository/auth_repository_pg"
+	gamificationRewardItemsRepositoryPkg "english_app/internal/gamification_module/repository/reward_items/reward_items_pg"
 	gamificationRepositoryPkg "english_app/internal/gamification_module/repository/user_reward/user_reward_pg"
 	courseRepositoryPkg "english_app/internal/learning_module/repository/course_repository/course_pg"
 	exerciseRepositoryPkg "english_app/internal/learning_module/repository/exercise_repository/exercise_pg"
@@ -28,6 +28,7 @@ import (
 	// Handlers
 	aiHandlerPkg "english_app/internal/ai_module/handler"
 	authHandlerPkg "english_app/internal/auth_module/handler"
+	gamificationHandlerPkg "english_app/internal/gamification_module/handler"
 	learningHandlerPkg "english_app/internal/learning_module/handler"
 
 	// Aggregator and Events
@@ -64,6 +65,7 @@ func main() {
 	gamificationRepository := gamificationRepositoryPkg.NewUserRewardRepository(db)
 	videoRepository := videoRepositoryPkg.NewVideoPartRepository(db)
 	summaryRepository := summaryRepositoryPkg.NewSummaryPartRepository(db)
+	gamificationRewardItemsRepository := gamificationRewardItemsRepositoryPkg.NewRewardRepository(db)
 
 	// --- Service Initialization ---
 	authService := authServicePkg.NewAuthService(authRepository)
@@ -71,7 +73,8 @@ func main() {
 	eventLearningService := eventLearningPkg.NewEventService([]string{"localhost:9093"})
 	contentService := learningServicePkg.NewLearningService(courseRepository, lessonRepository, exerciseRepository, eventLearningService)
 	aggregatorService := aggregatorServicePkg.NewAggregatorService(contentService, progressService)
-	gamificationService := gamificationServicePkg.NewUserRewardService(gamificationRepository)
+	gamificationService := gamificationServicePkg.NewGamificationService(gamificationRewardItemsRepository, gamificationRepository)
+	//gamificationRewardItemsService := gamificationServicePkg.NewRewardService(gamificationRewardItemsRepository)
 	videoPartService := learningServicePkg.NewVideoPartService(videoRepository, gcsUploader)
 	summaryPartService := learningServicePkg.NewSummaryPartService(summaryRepository, gcsUploader)
 	exercisePartService := learningServicePkg.NewExerciseService(exerciseRepository)
@@ -90,12 +93,13 @@ func main() {
 
 	authHandlerPkg.NewAuthHandler(publicGroup, authService)
 	aggregatorHandlerPkg.NewAggregatorHandler(protectedGroup, aggregatorService)
-	gamificationHandlerPkg.NewUserRewardHandler(protectedGroup, gamificationService)
+	gamificationHandlerPkg.NewGamificationHandler(protectedGroup, gamificationService)
 	learningHandlerPkg.NewVideoPartHandler(protectedGroup, videoPartService)
 	learningHandlerPkg.NewSummaryPartHandler(protectedGroup, summaryPartService)
 	learningHandlerPkg.NewExercisePartHandler(protectedGroup, exercisePartService)
 	learningHandlerPkg.NewLessonHandler(protectedGroup, lessonService)
 	aiHandlerPkg.NewGrammarHandler(protectedGroup, aiGrammarService)
+	//gamificationHandlerPkg.NewRewardHandler(protectedGroup, gamificationRewardItemsService)
 
 	// --- Event Consumers ---
 	go eventProgressPkg.ConsumeLessonUpdate(db, "progressupdate", progressService)

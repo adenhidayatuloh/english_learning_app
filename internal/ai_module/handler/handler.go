@@ -23,7 +23,7 @@ func NewGrammarHandler(r *gin.RouterGroup, grammarService service.GrammarService
 
 // HandleChatAI adalah handler untuk endpoint /chatAI
 func (h *GrammarHandler) HandleChatAI(c *gin.Context) {
-	var requestBody dto.GrammarRequest
+	var requestBody dto.ChatAIRequest
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})

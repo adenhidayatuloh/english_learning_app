@@ -1,5 +1,9 @@
 package dto
 
-type GrammarRequest struct {
+type ChatAIRequest struct {
 	Sentence string `json:"sentence"`
+}
+
+type ChatAIResponse struct {
+	Answer string `json:"answer"`
 }
