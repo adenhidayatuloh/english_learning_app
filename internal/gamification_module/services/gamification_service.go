@@ -59,7 +59,7 @@ func (s *gamificationService) GetAllRewards() ([]*dto.RewardItemsResponse, errs.
 func (s *gamificationService) GetRewardDetail(id uuid.UUID) (*dto.RewardItemsResponse, errs.MessageErr) {
 	reward, err := s.rewardRepo.FindByID(id)
 	if err != nil {
-		return nil, err
+		return &dto.RewardItemsResponse{}, err
 	}
 
 	return &dto.RewardItemsResponse{
@@ -134,7 +134,7 @@ func (s *gamificationService) CreateUserReward(input *dto.CreateUserRewardReques
 func (s *gamificationService) GetUserRewardByID(userID uuid.UUID) (*dto.UserRewardResponse, errs.MessageErr) {
 	userReward, err := s.userRepo.GetByUserID(userID)
 	if err != nil {
-		return nil, err
+		return &dto.UserRewardResponse{}, err
 	}
 
 	return &dto.UserRewardResponse{
@@ -194,7 +194,7 @@ func (s *gamificationService) UpdateUserReward(input *dto.CreateUserRewardReques
 func (s *gamificationService) GetUserLevel(userID uuid.UUID) (*dto.UserRewardLevelResponse, errs.MessageErr) {
 	userReward, err := s.userRepo.GetByUserID(userID)
 	if err != nil {
-		return nil, err
+		return &dto.UserRewardLevelResponse{}, err
 	}
 
 	level, nextLevelExp := common.CalculateLevel(userReward.TotalExp)

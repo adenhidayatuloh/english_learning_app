@@ -31,10 +31,10 @@ func (r *userRewardRepository) GetByUserID(UserID uuid.UUID) (*entity.UserReward
 	if err := r.db.Where("user_id = ?", UserID).First(&userReward).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &entity.UserReward{}, errs.NewNotFound("Lesson progress not found")
+			return &entity.UserReward{}, nil
 		}
 
-		return &entity.UserReward{}, errs.NewBadRequest("Cannot find lesson progress")
+		return &entity.UserReward{}, nil
 
 	}
 	return &userReward, nil
