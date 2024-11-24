@@ -25,6 +25,8 @@ func NewGamificationHandler(apiGroup *gin.RouterGroup, service services.Gamifica
 
 	// Routes for user rewards
 	apiGroup.GET("/gamification", handler.GetUserLevel)
+	apiGroup.GET("/gamification/user", handler.GetUserRewardByUserID)
+	apiGroup.POST("/gamification/redeem/:redeem_name", handler.RedeemReward)
 	// apiGroup.POST("/gamification/user-rewards", handler.CreateUserReward)
 	// apiGroup.GET("/gamification/user-rewards", handler.GetAllUserRewards)
 	// apiGroup.PUT("/gamification/user-rewards", handler.UpdateUserReward)
@@ -60,24 +62,24 @@ func (h *GamificationHandler) GetRewardDetail(ctx *gin.Context) {
 	ctx.JSON(common.BuildResponse(http.StatusOK, reward))
 }
 
-// func (h *GamificationHandler) RedeemReward(ctx *gin.Context) {
-// 	rewardIDParam := ctx.Param("id")
-// 	rewardID, err := uuid.Parse(rewardIDParam)
-// 	if err != nil {
-// 		newError := errs.NewBadRequest("Invalid reward ID format")
-// 		ctx.JSON(newError.StatusCode(), newError)
-// 		return
-// 	}
+func (h *GamificationHandler) RedeemReward(ctx *gin.Context) {
+	rewardName := ctx.Param("redeem_name")
+	//ewardID, err := uuid.Parse(rewardIDParam)
+	// if err != nil {
+	// 	newError := errs.NewBadRequest("Invalid reward ID format")
+	// 	ctx.JSON(newError.StatusCode(), newError)
+	// 	return
+	// }
 
-// 	userID := ctx.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
-// 	response, err := h.service.RedeemReward(rewardID, userID)
-// 	if err != nil {
-// 		ctx.JSON(err.StatusCode(), err)
-// 		return
-// 	}
+	userID := ctx.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
+	response, err := h.service.RedeemReward(rewardName, userID)
+	if err != nil {
+		ctx.JSON(err.StatusCode(), err)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, common.BuildResponse(http.StatusOK, response))
-// }
+	ctx.JSON(common.BuildResponse(http.StatusOK, response))
+}
 
 // --- User Rewards Handlers ---
 
@@ -113,7 +115,7 @@ func (h *GamificationHandler) GetUserLevel(ctx *gin.Context) {
 func (h *GamificationHandler) GetUserRewardByUserID(ctx *gin.Context) {
 	userID := ctx.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 
-	response, err := h.service.GetUserLevel(userID)
+	response, err := h.service.GetUserRewardByID(userID)
 	if err != nil {
 		ctx.JSON(err.StatusCode(), err)
 		return
