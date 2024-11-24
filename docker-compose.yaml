@@ -10,6 +10,8 @@ services:
       - kafka
     env_file:
       - .env
+    volumes:
+      - .:/app   
     # volumes:
     #   - ./json:/app/json
 
