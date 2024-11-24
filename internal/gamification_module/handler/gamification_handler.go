@@ -21,6 +21,7 @@ func NewGamificationHandler(apiGroup *gin.RouterGroup, service services.Gamifica
 	// Routes for rewards
 	apiGroup.GET("/gamification/reward-items", handler.GetAllRewards)
 	apiGroup.GET("/gamification/reward-items/:id", handler.GetRewardDetail)
+	apiGroup.GET("/gamification/testaddgame/:id", handler.GetRewardDetail)
 	//apiGroup.POST("/gamification/reward-items/:id/redeem", handler.RedeemReward)
 
 	// Routes for user rewards
