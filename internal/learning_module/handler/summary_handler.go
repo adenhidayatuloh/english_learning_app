@@ -49,7 +49,7 @@ func (h *SummaryPartHandler) Create(c *gin.Context) {
 	// Panggil service untuk membuat VideoPart
 	summaryPart, err2 := h.service.Create(request)
 	if err2 != nil {
-		c.JSON(err2.StatusCode(), err)
+		c.JSON(err2.StatusCode(), err2)
 		return
 	}
 

@@ -1,19 +1,17 @@
 version: "3.8"
 services:
-  # app:
-  #   build:
-  #     context: .
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     - DATABASE_URL=postgres://postgres:postgres@db:5432/english_app_3
-  #   depends_on:
-  #     - db
-  #     - kafka
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - ./json:/app/json
+  app:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - kafka
+    env_file:
+      - .env
+    # volumes:
+    #   - ./json:/app/json
 
   db:
     image: postgres:15

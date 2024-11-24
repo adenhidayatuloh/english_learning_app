@@ -70,7 +70,7 @@ func main() {
 	// --- Service Initialization ---
 	authService := authServicePkg.NewAuthService(authRepository)
 	progressService := progressServicePkg.NewProgressService(courseProgressRepository, lessonProgressRepository)
-	eventLearningService := eventLearningPkg.NewEventService([]string{"localhost:9093"})
+	eventLearningService := eventLearningPkg.NewEventService([]string{"kafka:9092"})
 	contentService := learningServicePkg.NewLearningService(courseRepository, lessonRepository, exerciseRepository, eventLearningService)
 	aggregatorService := aggregatorServicePkg.NewAggregatorService(contentService, progressService)
 	gamificationService := gamificationServicePkg.NewGamificationService(gamificationRewardItemsRepository, gamificationRepository)
