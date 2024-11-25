@@ -193,13 +193,15 @@ func (s *gamificationService) UpdateUserReward(input *dto.CreateUserRewardReques
 
 func (s *gamificationService) GetUserLevel(userID uuid.UUID) *dto.UserRewardLevelResponse {
 	userReward, err := s.userRepo.GetByUserID(userID)
-	level, nextLevelExp := common.CalculateLevel(userReward.TotalExp)
+
 	if err != nil {
 		return &dto.UserRewardLevelResponse{
 			Level:        1,
-			NextLevelExp: nextLevelExp,
+			NextLevelExp: 50,
 		}
 	}
+
+	level, nextLevelExp := common.CalculateLevel(userReward.TotalExp)
 
 	return &dto.UserRewardLevelResponse{
 		Level:        level,
