@@ -16,6 +16,7 @@ import (
 	summaryRepositoryPkg "english_app/internal/learning_module/repository/summary_repository/summary_pg"
 	videoRepositoryPkg "english_app/internal/learning_module/repository/video_repository/video_pg"
 	courseProgressRepositoryPkg "english_app/internal/progress_module/repository/course_progress_repository/course_progress_pg"
+	exerciseProgressRepositoryPkg "english_app/internal/progress_module/repository/exercise_progress_repository"
 	lessonProgressRepositoryPkg "english_app/internal/progress_module/repository/lesson_progress_repository/lesson_postgress_pg"
 
 	// Services
@@ -30,6 +31,7 @@ import (
 	authHandlerPkg "english_app/internal/auth_module/handler"
 	gamificationHandlerPkg "english_app/internal/gamification_module/handler"
 	learningHandlerPkg "english_app/internal/learning_module/handler"
+	ProgressHandlerPkg "english_app/internal/progress_module/handler"
 
 	// Aggregator and Events
 	aggregatorServicePkg "english_app/internal/aggregator_module/services"
@@ -62,6 +64,7 @@ func main() {
 	exerciseRepository := exerciseRepositoryPkg.NewExercisePostgres(db)
 	lessonProgressRepository := lessonProgressRepositoryPkg.NewLessonProgressRepository(db)
 	courseProgressRepository := courseProgressRepositoryPkg.NewCourseProgressRepository(db)
+	exerciseProfressRepository := exerciseProgressRepositoryPkg.NewExerciseProgressRepository(db)
 	gamificationRepository := gamificationRepositoryPkg.NewUserRewardRepository(db)
 	videoRepository := videoRepositoryPkg.NewVideoPartRepository(db)
 	summaryRepository := summaryRepositoryPkg.NewSummaryPartRepository(db)
@@ -69,7 +72,7 @@ func main() {
 
 	// --- Service Initialization ---
 	authService := authServicePkg.NewAuthService(authRepository)
-	progressService := progressServicePkg.NewProgressService(courseProgressRepository, lessonProgressRepository)
+	progressService := progressServicePkg.NewProgressService(courseProgressRepository, lessonProgressRepository, exerciseProfressRepository)
 	eventLearningService := eventLearningPkg.NewEventService([]string{"kafka:9092"})
 	contentService := learningServicePkg.NewLearningService(courseRepository, lessonRepository, exerciseRepository, eventLearningService)
 	aggregatorService := aggregatorServicePkg.NewAggregatorService(contentService, progressService)
@@ -99,6 +102,7 @@ func main() {
 	learningHandlerPkg.NewExercisePartHandler(protectedGroup, exercisePartService)
 	learningHandlerPkg.NewLessonHandler(protectedGroup, lessonService)
 	aiHandlerPkg.NewGrammarHandler(protectedGroup, aiGrammarService)
+	ProgressHandlerPkg.NewProgressHandler(protectedGroup, progressService)
 	//gamificationHandlerPkg.NewRewardHandler(protectedGroup, gamificationRewardItemsService)
 
 	// --- Event Consumers ---

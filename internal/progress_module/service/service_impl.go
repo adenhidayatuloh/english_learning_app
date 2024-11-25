@@ -4,6 +4,7 @@ import (
 	"english_app/internal/progress_module/dto"
 	"english_app/internal/progress_module/entity"
 	courseprogressrepository "english_app/internal/progress_module/repository/course_progress_repository"
+	exerciseprogressrepository "english_app/internal/progress_module/repository/exercise_progress_repository"
 	lessonprogressrepository "english_app/internal/progress_module/repository/lesson_progress_repository"
 	"english_app/pkg/errs"
 	"time"
@@ -12,8 +13,9 @@ import (
 )
 
 type progressService struct {
-	courseProgressRepo courseprogressrepository.CourseProgressRepository
-	lessonProgressRepo lessonprogressrepository.LessonProgressRepository
+	courseProgressRepo   courseprogressrepository.CourseProgressRepository
+	lessonProgressRepo   lessonprogressrepository.LessonProgressRepository
+	exerciseProgressRepo exerciseprogressrepository.ExerciseProgressRepository
 }
 
 // GetAllCourseProgressByUserID implements ProgressService.
@@ -27,10 +29,11 @@ func (s *progressService) GetAllProgressByUserID(userID uuid.UUID) ([]*entity.Le
 	return s.lessonProgressRepo.GetAllProgressByUserID(userID)
 }
 
-func NewProgressService(courseProgressRepo courseprogressrepository.CourseProgressRepository, lessonProgressRepo lessonprogressrepository.LessonProgressRepository) ProgressService {
+func NewProgressService(courseProgressRepo courseprogressrepository.CourseProgressRepository, lessonProgressRepo lessonprogressrepository.LessonProgressRepository, exerciseProgressRepo exerciseprogressrepository.ExerciseProgressRepository) ProgressService {
 	return &progressService{
-		courseProgressRepo: courseProgressRepo,
-		lessonProgressRepo: lessonProgressRepo,
+		courseProgressRepo:   courseProgressRepo,
+		lessonProgressRepo:   lessonProgressRepo,
+		exerciseProgressRepo: exerciseProgressRepo,
 	}
 }
 
@@ -160,4 +163,57 @@ func (s *progressService) GetLatestProgress(userID uuid.UUID) (*dto.LessonProgre
 	}
 
 	return response, nil
+}
+
+func (s *progressService) CreateExerciseProgress(request dto.CreateExerciseProgressRequest) (*dto.ExerciseProgressResponse, error) {
+	exerciseProgress := entity.ExerciseProgress{
+		UserID:     request.UserID,
+		ExerciseID: request.ExerciseID, // Mengganti ProgressID menjadi LessonID
+		Score:      request.Score,
+	}
+
+	if err := s.exerciseProgressRepo.Create(&exerciseProgress); err != nil {
+		return nil, err
+	}
+
+	response := dto.ExerciseProgressResponse{
+		ID:         exerciseProgress.ID,
+		UserID:     exerciseProgress.UserID,
+		ExerciseID: exerciseProgress.ExerciseID, // Mengganti ProgressID menjadi LessonID
+		Score:      exerciseProgress.Score,
+	}
+	return &response, nil
+}
+
+func (s *progressService) GetExerciseProgressByID(id uint) (*dto.ExerciseProgressResponse, error) {
+	exerciseProgress, err := s.exerciseProgressRepo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	response := dto.ExerciseProgressResponse{
+		ID:         exerciseProgress.ID,
+		UserID:     exerciseProgress.UserID,
+		ExerciseID: exerciseProgress.ExerciseID, // Mengganti ProgressID menjadi LessonID
+		Score:      exerciseProgress.Score,
+	}
+	return &response, nil
+}
+
+func (s *progressService) GetAllExerciseProgresses() ([]dto.ExerciseProgressResponse, error) {
+	exerciseProgresses, err := s.exerciseProgressRepo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []dto.ExerciseProgressResponse
+	for _, progress := range exerciseProgresses {
+		responses = append(responses, dto.ExerciseProgressResponse{
+			ID:         progress.ID,
+			UserID:     progress.UserID,
+			ExerciseID: progress.ExerciseID, // Mengganti ProgressID menjadi LessonID
+			Score:      progress.Score,
+		})
+	}
+	return responses, nil
 }
