@@ -104,11 +104,7 @@ func (h *GamificationHandler) CreateUserReward(ctx *gin.Context) {
 func (h *GamificationHandler) GetUserLevel(ctx *gin.Context) {
 	userID := ctx.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 
-	response, err := h.service.GetUserLevel(userID)
-	if err != nil {
-		ctx.JSON(err.StatusCode(), err)
-		return
-	}
+	response := h.service.GetUserLevel(userID)
 
 	ctx.JSON(common.BuildResponse(http.StatusOK, response))
 }
@@ -116,11 +112,7 @@ func (h *GamificationHandler) GetUserLevel(ctx *gin.Context) {
 func (h *GamificationHandler) GetUserRewardByUserID(ctx *gin.Context) {
 	userID := ctx.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
 
-	response, err := h.service.GetUserRewardByID(userID)
-	if err != nil {
-		ctx.JSON(err.StatusCode(), err)
-		return
-	}
+	response := h.service.GetUserRewardByID(userID)
 
 	ctx.JSON(common.BuildResponse(http.StatusOK, response))
 }

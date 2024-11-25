@@ -31,10 +31,10 @@ func (r *userRewardRepository) GetByUserID(UserID uuid.UUID) (*entity.UserReward
 	if err := r.db.Where("user_id = ?", UserID).First(&userReward).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &entity.UserReward{}, nil
+			return nil, errs.NewNotFound("user gamification not found")
 		}
 
-		return &entity.UserReward{}, nil
+		return &entity.UserReward{}, errs.NewInternalServerError("user gamification not found")
 
 	}
 	return &userReward, nil

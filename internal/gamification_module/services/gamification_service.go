@@ -19,10 +19,10 @@ type GamificationService interface {
 
 	// UserReward-related methods
 	CreateUserReward(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr)
-	GetUserRewardByID(userID uuid.UUID) (*dto.UserRewardResponse, errs.MessageErr)
+	GetUserRewardByID(userID uuid.UUID) *dto.UserRewardResponse
 	GetAllUserRewards() ([]*dto.UserRewardResponse, errs.MessageErr)
 	UpdateUserReward(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr)
-	GetUserLevel(userID uuid.UUID) (*dto.UserRewardLevelResponse, errs.MessageErr)
+	GetUserLevel(userID uuid.UUID) *dto.UserRewardLevelResponse
 }
 
 type gamificationService struct {
@@ -131,10 +131,10 @@ func (s *gamificationService) CreateUserReward(input *dto.CreateUserRewardReques
 	}, nil
 }
 
-func (s *gamificationService) GetUserRewardByID(userID uuid.UUID) (*dto.UserRewardResponse, errs.MessageErr) {
+func (s *gamificationService) GetUserRewardByID(userID uuid.UUID) *dto.UserRewardResponse {
 	userReward, err := s.userRepo.GetByUserID(userID)
 	if err != nil {
-		return &dto.UserRewardResponse{}, err
+		return &dto.UserRewardResponse{}
 	}
 
 	return &dto.UserRewardResponse{
@@ -144,7 +144,7 @@ func (s *gamificationService) GetUserRewardByID(userID uuid.UUID) (*dto.UserRewa
 		TotalExp:    userReward.TotalExp,
 		HelpCount:   userReward.HelpCount,
 		HealthCount: userReward.HealthCount,
-	}, nil
+	}
 }
 
 func (s *gamificationService) GetAllUserRewards() ([]*dto.UserRewardResponse, errs.MessageErr) {
@@ -191,17 +191,20 @@ func (s *gamificationService) UpdateUserReward(input *dto.CreateUserRewardReques
 	}, nil
 }
 
-func (s *gamificationService) GetUserLevel(userID uuid.UUID) (*dto.UserRewardLevelResponse, errs.MessageErr) {
+func (s *gamificationService) GetUserLevel(userID uuid.UUID) *dto.UserRewardLevelResponse {
 	userReward, err := s.userRepo.GetByUserID(userID)
+	level, nextLevelExp := common.CalculateLevel(userReward.TotalExp)
 	if err != nil {
-		return &dto.UserRewardLevelResponse{}, err
+		return &dto.UserRewardLevelResponse{
+			Level:        1,
+			NextLevelExp: nextLevelExp,
+		}
 	}
 
-	level, nextLevelExp := common.CalculateLevel(userReward.TotalExp)
 	return &dto.UserRewardLevelResponse{
 		Level:        level,
 		CurrentExp:   userReward.TotalExp,
 		NextLevelExp: nextLevelExp,
 		TotalPoints:  userReward.TotalPoints,
-	}, nil
+	}
 }
