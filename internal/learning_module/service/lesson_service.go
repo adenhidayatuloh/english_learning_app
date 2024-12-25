@@ -21,6 +21,7 @@ type LessonService interface {
 	UpdateLesson(id uuid.UUID, request dto.LessonRequest) (*dto.LessonResponse, errs.MessageErr)
 	DeleteLesson(id uuid.UUID) errs.MessageErr
 	ProcessLessonEvent(ctx context.Context, topic string, payload event.LessonProgressRequest) errs.MessageErr
+	FullTextSearch(searchTerm string) ([]*dto.GetALLLesson, errs.MessageErr)
 
 	// Create(request dto.VideoPartRequest) (*dto.VideoPartResponse, errs.MessageErr)
 	// FindByID(id uuid.UUID) (*dto.VideoPartResponse, errs.MessageErr)
@@ -32,6 +33,34 @@ type lessonService struct {
 	lessonRepo   lessonrepository.LessonRepository
 	eventService event.EventService
 	//progressService progressservice.ProgressService
+}
+
+// FullTextSearch implements LessonService.
+func (s *lessonService) FullTextSearch(searchTerm string) ([]*dto.GetALLLesson, errs.MessageErr) {
+	lessons, err := s.lessonRepo.FullTextSearch(searchTerm)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*dto.GetALLLesson
+
+	for _, value := range lessons {
+
+		result = append(result, &dto.GetALLLesson{
+			ID:          value.ID,
+			CourseID:    value.CourseID,
+			Name:        value.Name,
+			Description: value.Description,
+			VideoID:     value.VideoID,
+			ExerciseID:  value.ExerciseID,
+			SummaryID:   value.SummaryID,
+		})
+
+	}
+
+	return result, nil
+
 }
 
 func (s *lessonService) ProcessLessonEvent(ctx context.Context, topic string, payload event.LessonProgressRequest) errs.MessageErr {

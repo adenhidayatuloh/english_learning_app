@@ -23,6 +23,8 @@ type User struct {
 	Role      string    `gorm:"type:varchar(50);default:'user'" json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Otp       Otp       `gorm:"foreignKey:Email;references:Email"`
+	Verified  bool      `gorm:"default:false"`
 }
 
 func (User) TableName() string {

@@ -1,25 +1,26 @@
 version: "3.8"
 services:
-  app:
-    build:
-      context: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-      - kafka
-    env_file:
-      - .env
-    volumes:
-      - .:/app   
-    # volumes:
-    #   - ./json:/app/json
+  # app:
+  #   build:
+  #     context: .
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - db
+  #     - kafka
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - .:/app   
+  #   # volumes:
+  #   #   - ./json:/app/json
 
   db:
     image: postgres:15
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      
 
     ports:
       - "5432:5432"

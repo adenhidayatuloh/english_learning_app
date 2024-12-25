@@ -18,7 +18,9 @@ func NewAuthHandler(router *gin.RouterGroup, userService services.AuthService) {
 	authHandler := AuthHandler{userService}
 	router.POST("/auth/register", authHandler.Register)
 	router.POST("/auth/login", authHandler.Login)
-	router.POST("/auth/tesadmin", authHandler.Login)
+	router.POST("/auth/generate-new-otp", authHandler.GenerateNewOtp)
+	router.PUT("/auth/forget-password", authHandler.ForgetPassword)
+	router.POST("/auth/verif-otp", authHandler.VerifOtp)
 }
 
 func (u *AuthHandler) Register(ctx *gin.Context) {
@@ -37,6 +39,60 @@ func (u *AuthHandler) Register(ctx *gin.Context) {
 	}
 
 	ctx.JSON(common.BuildResponse(http.StatusCreated, data))
+}
+
+func (u *AuthHandler) VerifOtp(ctx *gin.Context) {
+	var requestBody dto.VerifRequest
+
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		newError := errs.NewUnprocessableEntity(err.Error())
+		ctx.JSON(newError.StatusCode(), newError)
+		return
+	}
+
+	err := u.authService.VerifyRegisterOTP(&requestBody)
+	if err != nil {
+		ctx.JSON(err.StatusCode(), err)
+		return
+	}
+
+	ctx.JSON(common.BuildResponse(http.StatusOK, nil))
+}
+
+func (u *AuthHandler) ForgetPassword(ctx *gin.Context) {
+	var requestBody dto.ForgetPasswordRequest
+
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		newError := errs.NewUnprocessableEntity(err.Error())
+		ctx.JSON(newError.StatusCode(), newError)
+		return
+	}
+
+	err := u.authService.VerifForgetPasswordOTP(&requestBody)
+	if err != nil {
+		ctx.JSON(err.StatusCode(), err)
+		return
+	}
+
+	ctx.JSON(common.BuildResponse(http.StatusOK, nil))
+}
+
+func (u *AuthHandler) GenerateNewOtp(ctx *gin.Context) {
+	var requestBody dto.GenerateNewOtpRequest
+
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		newError := errs.NewUnprocessableEntity(err.Error())
+		ctx.JSON(newError.StatusCode(), newError)
+		return
+	}
+
+	err := u.authService.ResendOTP(&requestBody)
+	if err != nil {
+		ctx.JSON(err.StatusCode(), err)
+		return
+	}
+
+	ctx.JSON(common.BuildResponse(http.StatusOK, nil))
 }
 
 func (u *AuthHandler) Login(ctx *gin.Context) {

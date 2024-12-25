@@ -25,6 +25,8 @@ func NewLessonHandler(apiGroup *gin.RouterGroup, lessonService service.LessonSer
 	apiGroup.GET("/lesson-parts/:id", learningLessonHandler.GetLessonByID)
 	apiGroup.PUT("/lesson-parts/:id", learningLessonHandler.UpdateLesson)
 	apiGroup.DELETE("/lesson-parts/:id", learningLessonHandler.DeleteLesson)
+	apiGroup.GET("/lesson-parts/search/:search", learningLessonHandler.FullTextSearch)
+
 	apiGroup.PUT("/update_progress_lesson", learningLessonHandler.UpdateLessonProgressEvent)
 
 	// router.POST("/lesson-parts", handler.CreateLesson)
@@ -84,6 +86,19 @@ func (h *LessonHandler) GetLessonByID(c *gin.Context) {
 	}
 
 	c.JSON(common.BuildResponse(http.StatusOK, lesson))
+}
+
+func (h *LessonHandler) FullTextSearch(c *gin.Context) {
+	searchTerm := c.Param("search")
+
+	result, err := h.LessonService.FullTextSearch(searchTerm)
+
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+
+	c.JSON(common.BuildResponse(http.StatusOK, result))
 }
 
 func (h *LessonHandler) UpdateLesson(c *gin.Context) {

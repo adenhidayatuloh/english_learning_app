@@ -4,6 +4,7 @@ import (
 	"english_app/internal/learning_module/entity"
 	lessonrepository "english_app/internal/learning_module/repository/lesson_repository"
 	"english_app/pkg/errs"
+	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -48,6 +49,11 @@ func (r *lessonPostgres) CreateLesson(lesson *entity.Lesson) errs.MessageErr {
 
 	}
 
+	query := `UPDATE learning.lesson SET tsv_name = to_tsvector('simple', name) WHERE lesson_id = ?`
+	if err := r.db.Exec(query, lesson.ID).Error; err != nil {
+		return errs.NewBadRequest("Cannot create lesson in ts")
+	}
+
 	return nil
 }
 
@@ -68,6 +74,11 @@ func (r *lessonPostgres) UpdateLesson(lesson *entity.Lesson) errs.MessageErr {
 		return errs.NewBadRequest("Cannot update lesson")
 	}
 
+	query := `UPDATE learning.lesson SET tsv_name = to_tsvector('simple', name) WHERE lesson_id = ?`
+	if err := r.db.Exec(query, lesson.ID).Error; err != nil {
+		return errs.NewBadRequest("Cannot update lesson in ts")
+	}
+
 	return nil
 }
 
@@ -79,4 +90,19 @@ func (r *lessonPostgres) DeleteLesson(id uuid.UUID) errs.MessageErr {
 	}
 
 	return nil
+}
+
+func (r *lessonPostgres) FullTextSearch(searchTerm string) ([]*entity.Lesson, errs.MessageErr) {
+
+	var results []*entity.Lesson
+
+	query := fmt.Sprintf("SELECT *, ts_rank(tsv_name, plainto_tsquery('simple', '%s')) AS rank FROM learning.lesson WHERE tsv_name @@ plainto_tsquery('simple', '%s') ORDER BY rank DESC", searchTerm, searchTerm)
+	err := r.db.Raw(query).Scan(&results).Error
+
+	if err != nil {
+		return nil, errs.NewBadRequest(err.Error())
+	}
+
+	return results, nil
+
 }

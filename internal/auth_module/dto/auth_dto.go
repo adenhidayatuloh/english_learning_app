@@ -14,6 +14,20 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type VerifRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Code  string `json:"code" binding:"required"`
+}
+
+type GenerateNewOtpRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ForgetPasswordRequest struct {
+	Email       string `json:"email" binding:"required,email"`
+	Code        string `json:"code" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
 type RegisterResponse struct {
 	ID       uuid.UUID `json:"id"`
 	Username string    `json:"username"`

@@ -28,7 +28,7 @@ COPY --from=builder /app/app /usr/local/bin/app
 COPY json/original-advice-438105-i6-9ed330e0dc52.json /app/original-advice-438105-i6-9ed330e0dc52.json
 
 # Set GOOGLE_APPLICATION_CREDENTIALS environment variable
-ENV GOOGLE_APPLICATION_CREDENTIALS="/app/original-advice-438105-i6-9ed330e0dc52.json"
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/learnlingo_key.json"
 
 
 # Expose port 8080 for the Go application

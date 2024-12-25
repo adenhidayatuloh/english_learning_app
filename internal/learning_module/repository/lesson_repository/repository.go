@@ -15,4 +15,5 @@ type LessonRepository interface {
 	GetLessonByID(id uuid.UUID) (*entity.Lesson, errs.MessageErr)
 	UpdateLesson(lesson *entity.Lesson) errs.MessageErr
 	DeleteLesson(id uuid.UUID) errs.MessageErr
+	FullTextSearch(searchTerm string) ([]*entity.Lesson, errs.MessageErr)
 }
