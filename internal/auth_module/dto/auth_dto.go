@@ -39,3 +39,7 @@ type AuthResponse struct {
 	Token string `json:"token"`
 	Role  string `json:"role"`
 }
+
+type DeleteUserRequest struct {
+	Email string `json:"email"`
+}

@@ -20,12 +20,19 @@ type AuthService interface {
 	Register(payload *dto.RegisterRequest) (*dto.RegisterResponse, errs.MessageErr)
 	Login(payload *dto.LoginRequest) (*dto.AuthResponse, errs.MessageErr)
 	VerifyRegisterOTP(payload *dto.VerifRequest) errs.MessageErr
+	DeleteUserByEmail(payload *dto.DeleteUserRequest) errs.MessageErr
 	ResendOTP(payload *dto.GenerateNewOtpRequest) errs.MessageErr
 	VerifForgetPasswordOTP(payload *dto.ForgetPasswordRequest) errs.MessageErr
 }
 
 type authService struct {
 	userRepo authrepository.AuthRepository
+}
+
+// DeleteUserByEmail implements AuthService.
+func (a *authService) DeleteUserByEmail(payload *dto.DeleteUserRequest) errs.MessageErr {
+	return a.userRepo.DeleteUserByEmail(payload.Email)
+
 }
 
 func NewAuthService(userRepo authrepository.AuthRepository) AuthService {

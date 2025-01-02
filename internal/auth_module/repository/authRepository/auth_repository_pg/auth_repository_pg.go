@@ -16,6 +16,17 @@ type userMySql struct {
 	db *gorm.DB
 }
 
+// DeleteUserByEmail implements authrepository.AuthRepository.
+func (u *userMySql) DeleteUserByEmail(email string) errs.MessageErr {
+	err := u.db.Delete(&entity.User{}, "email = ?", email).Error
+
+	if err != nil {
+		return errs.NewBadRequest("Cannot Delete User")
+	}
+
+	return nil
+}
+
 func NewUserMySql(db *gorm.DB) authrepository.AuthRepository {
 	return &userMySql{db}
 }

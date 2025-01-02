@@ -18,6 +18,7 @@ func NewAuthHandler(router *gin.RouterGroup, userService services.AuthService) {
 	authHandler := AuthHandler{userService}
 	router.POST("/auth/register", authHandler.Register)
 	router.POST("/auth/login", authHandler.Login)
+	router.DELETE("/auth/delete", authHandler.DeleteUserByEmail)
 	router.POST("/auth/generate-new-otp", authHandler.GenerateNewOtp)
 	router.PUT("/auth/forget-password", authHandler.ForgetPassword)
 	router.POST("/auth/verif-otp", authHandler.VerifOtp)
@@ -39,6 +40,24 @@ func (u *AuthHandler) Register(ctx *gin.Context) {
 	}
 
 	ctx.JSON(common.BuildResponse(http.StatusCreated, data))
+}
+
+func (u *AuthHandler) DeleteUserByEmail(ctx *gin.Context) {
+	var requestBody dto.DeleteUserRequest
+
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		newError := errs.NewUnprocessableEntity(err.Error())
+		ctx.JSON(newError.StatusCode(), newError)
+		return
+	}
+
+	err := u.authService.DeleteUserByEmail(&requestBody)
+	if err != nil {
+		ctx.JSON(err.StatusCode(), err)
+		return
+	}
+
+	ctx.JSON(common.BuildResponse(http.StatusCreated, nil))
 }
 
 func (u *AuthHandler) VerifOtp(ctx *gin.Context) {

@@ -13,6 +13,7 @@ type AuthRepository interface {
 	CreateOtp(otp *entity.Otp) errs.MessageErr
 	FindValidOTP(email, code string) (*entity.Otp, errs.MessageErr)
 	DeleteUserById(id uuid.UUID) errs.MessageErr
+	DeleteUserByEmail(email string) errs.MessageErr
 	DeleteOtpByEmail(email string) errs.MessageErr
 	GetOtpByEmail(email string) (*entity.Otp, errs.MessageErr)
 	// DeleteExpiredOTPs() errs.MessageErr
