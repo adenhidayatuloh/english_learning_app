@@ -20,6 +20,7 @@ type GamificationService interface {
 	// UserReward-related methods
 	CreateUserReward(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr)
 	GetUserRewardByID(userID uuid.UUID) *dto.UserRewardResponse
+	PutUserReward(userID uuid.UUID, rewardName string) (*dto.UserRewardResponse, errs.MessageErr)
 	GetAllUserRewards() ([]*dto.UserRewardResponse, errs.MessageErr)
 	UpdateUserReward(input *dto.CreateUserRewardRequest) (*dto.UserRewardResponse, errs.MessageErr)
 	GetUserLevel(userID uuid.UUID) *dto.UserRewardLevelResponse
@@ -28,6 +29,48 @@ type GamificationService interface {
 type gamificationService struct {
 	rewardRepo rewarditems.RewardRepository
 	userRepo   userreward.UserRewardRepository
+}
+
+// PutUserReward implements GamificationService.
+func (s *gamificationService) PutUserReward(userID uuid.UUID, rewardName string) (*dto.UserRewardResponse, errs.MessageErr) {
+
+	userReward, err := s.userRepo.GetByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if rewardName != "bantuan" && rewardName != "nyawa" {
+		return nil, errs.NewBadRequest("invalid reward name ")
+	}
+
+	if rewardName == "bantuan" {
+		if userReward.HelpCount < 1 {
+			return nil, errs.NewBadRequest("help reward empty")
+		}
+		userReward.HelpCount = userReward.HelpCount - 1
+	}
+
+	if rewardName == "nyawa" {
+		if userReward.HealthCount < 1 {
+			return nil, errs.NewBadRequest("health reward empty")
+		}
+		userReward.HealthCount = userReward.HealthCount - 1
+	}
+
+	err = s.userRepo.Update(userReward)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.UserRewardResponse{
+		ID:          userReward.ID,
+		UserID:      userReward.UserID,
+		TotalPoints: userReward.TotalPoints,
+		TotalExp:    userReward.TotalExp,
+		HelpCount:   userReward.HelpCount,
+		HealthCount: userReward.HealthCount,
+	}, nil
 }
 
 func NewGamificationService(rewardRepo rewarditems.RewardRepository, userRepo userreward.UserRewardRepository) GamificationService {

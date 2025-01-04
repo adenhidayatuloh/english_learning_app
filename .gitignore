@@ -1,5 +1,2 @@
 external_services/
 json/
-.env
-
-docker-compose.yaml

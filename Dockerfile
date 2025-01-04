@@ -1,4 +1,3 @@
-GNU nano 7.2                                                                                                Dockerfile                                                                                                          
 # Stage 1: Build the Go application
 FROM golang:1.21 AS builder
 WORKDIR /app
@@ -37,29 +36,3 @@ EXPOSE 8080
 
 # Command to run the Go application
 CMD ["app"]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[ Read 38 lines ]
-^G Help          ^O Write Out     ^W Where Is      ^K Cut           ^T Execute       ^C Location      M-U Undo         M-A Set Mark     M-] To Bracket   M-Q Previous     ^B Back          ^◂ Prev Word     ^A Home
-^X Exit          ^R Read File     ^\ Replace       ^U Paste         ^J Justify       ^/ Go To Line    M-E Redo         M-6 Copy         ^Q Where Was     M-W Next         ^F Forward       ^▸ Next Word     ^E End

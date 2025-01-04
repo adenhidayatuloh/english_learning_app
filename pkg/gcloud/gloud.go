@@ -33,7 +33,7 @@ func NewGCSUploader() (*GCSUploader, errs.MessageErr) {
 		return nil, errs.NewBadRequest("missing Google Cloud Bucket ID in environment variables")
 	}
 
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "json/learnlingo_key.json")
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/app/key.json")
 
 	client, err := storage.NewClient(ctx)
 	if err != nil {
