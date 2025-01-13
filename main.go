@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"runtime"
 
 	"english_app/infra/postgresql"
 	"english_app/pkg/gcloud"
@@ -47,6 +48,8 @@ import (
 
 func main() {
 	// --- Database and Cloud Storage Initialization ---
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	db := postgresql.GetDBInstance()
 	gcsUploader, err := gcloud.NewGCSUploader()
 	if err != nil {
@@ -73,7 +76,7 @@ func main() {
 	// --- Service Initialization ---
 	authService := authServicePkg.NewAuthService(authRepository)
 	progressService := progressServicePkg.NewProgressService(courseProgressRepository, lessonProgressRepository, exerciseProfressRepository)
-	eventLearningService := eventLearningPkg.NewEventService([]string{"kafka:9092"})
+	eventLearningService := eventLearningPkg.NewEventService([]string{"localhost:9093"})
 	contentService := learningServicePkg.NewLearningService(courseRepository, lessonRepository, exerciseRepository, eventLearningService)
 	aggregatorService := aggregatorServicePkg.NewAggregatorService(contentService, progressService)
 	gamificationService := gamificationServicePkg.NewGamificationService(gamificationRewardItemsRepository, gamificationRepository)

@@ -1,13 +1,16 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"english_app/internal/aggregator_module/dto"
-	courseDTO "english_app/internal/learning_module/dto"
 	contentService "english_app/internal/learning_module/service"
 	progressService "english_app/internal/progress_module/service"
 	"english_app/pkg/errs"
 
+	"time"
+
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 )
 
@@ -54,22 +57,39 @@ func NewAggregatorService(contentService contentService.ContentManagementService
 	}
 }
 
-// GetALessonDetail implements AggregateService.
+var redisClient = redis.NewClient(&redis.Options{
+	Addr: "localhost:6379", // Sesuaikan dengan konfigurasi Redis
+})
+
+// Fungsi untuk mendapatkan detail pelajaran dengan caching
 func (s *aggregatorService) GetALessonDetail(lessonID uuid.UUID, userID uuid.UUID) (*dto.GetALessonResponse, errs.MessageErr) {
+	ctx := context.Background()
 
+	// Cache key menggunakan kombinasi lessonID dan userID
+	cacheKey := "lesson_detail:" + lessonID.String() + ":" + userID.String()
+
+	// Cek apakah data ada di cache
+	cachedData, errRedis := redisClient.Get(ctx, cacheKey).Result()
+	if errRedis == nil {
+		// Jika data ditemukan di cache, unmarshal JSON ke struct
+		var response dto.GetALessonResponse
+		if err := json.Unmarshal([]byte(cachedData), &response); err == nil {
+			return &response, nil
+		}
+	}
+
+	// Ambil data dari database atau service
 	getLesson, err := s.FindLessonByID(lessonID)
-
 	if err != nil {
 		return nil, err
 	}
 
 	progressLesson, err := s.ProgressService.GetLessonProgress(userID, lessonID)
-
 	if err != nil {
 		return nil, err
 	}
-	//Mapping VideoPart, ExercisePart, and SummaryPart to their DTOs
 
+	// Mapping VideoPart, ExercisePart, dan SummaryPart ke DTO
 	videoResponse := dto.VideoResponse{
 		VideoID:          getLesson.Video.ID,
 		VideoTitle:       getLesson.Video.Title,
@@ -102,60 +122,186 @@ func (s *aggregatorService) GetALessonDetail(lessonID uuid.UUID, userID uuid.UUI
 		TotalProgress: progressLesson.ProgressPercentage,
 	}
 
+	// Simpan hasil ke Redis
+	dataToCache, err2 := json.Marshal(response)
+	if err2 == nil {
+		redisClient.Set(ctx, cacheKey, dataToCache, 10*time.Minute) // TTL 10 menit
+	}
+
 	return response, nil
-
 }
+
+// // GetALessonDetail implements AggregateService.
+// func (s *aggregatorService) GetALessonDetail(lessonID uuid.UUID, userID uuid.UUID) (*dto.GetALessonResponse, errs.MessageErr) {
+
+// 	getLesson, err := s.FindLessonByID(lessonID)
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	progressLesson, err := s.ProgressService.GetLessonProgress(userID, lessonID)
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	//Mapping VideoPart, ExercisePart, and SummaryPart to their DTOs
+
+// 	videoResponse := dto.VideoResponse{
+// 		VideoID:          getLesson.Video.ID,
+// 		VideoTitle:       getLesson.Video.Title,
+// 		VideoDescription: getLesson.Video.Description,
+// 		VideoUrl:         getLesson.Video.URL,
+// 		VideoExp:         getLesson.Video.VideoExp,
+// 		VideoPoint:       getLesson.Video.VideoPoin,
+// 		IsCompleted:      progressLesson.IsVideoCompleted,
+// 	}
+
+// 	exerciseResponse := dto.ExerciseResponse{
+// 		ExerciseID:    getLesson.Exercise.ID,
+// 		ExerciseExp:   getLesson.Exercise.ExerciseExp,
+// 		ExercisePoint: getLesson.Exercise.ExercisePoin,
+// 		IsCompleted:   progressLesson.IsExerciseCompleted,
+// 	}
+
+// 	summaryResponse := dto.SummaryResponse{
+// 		SummaryID:          getLesson.Summary.ID,
+// 		SummaryDescription: getLesson.Summary.Description,
+// 		IsCompleted:        progressLesson.IsSummaryCompleted,
+// 		SummaryUrl:         getLesson.Summary.URL,
+// 	}
+
+// 	response := &dto.GetALessonResponse{
+// 		LessonName:    getLesson.Name,
+// 		Videos:        videoResponse,
+// 		Exercises:     exerciseResponse,
+// 		Summaries:     summaryResponse,
+// 		TotalProgress: progressLesson.ProgressPercentage,
+// 	}
+
+// 	return response, nil
+
+// }
+
 func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetContentProgressRequest, userID uuid.UUID) (*dto.CourseData, errs.MessageErr) {
+	ctx := context.Background()
+
+	// Cache key menggunakan kombinasi nama dan kategori kursus serta userID
+	cacheKey := "course_detail:" + courseRequest.CourseName + ":" + courseRequest.CourseCategory + ":" + userID.String()
+
+	// Cek apakah data ada di cache
+	cachedData, errRedis := redisClient.Get(ctx, cacheKey).Result()
+	if errRedis == nil {
+		// Jika data ditemukan di cache, unmarshal JSON ke struct
+		var response dto.CourseData
+		if err := json.Unmarshal([]byte(cachedData), &response); err == nil {
+			return &response, nil
+		}
+	}
+
+	// Ambil data kursus berdasarkan nama dan kategori
+	getCourse, err := s.GetCourseByNameAndCategory(courseRequest.CourseName, courseRequest.CourseCategory)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ambil semua pelajaran terkait kursus
+	getAllLessons, err := s.FindLessonByCourseID(getCourse.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Inisialisasi response dan total progres
 	totalCourseProgress := 0
-	getCourseRequest := &courseDTO.CourseRequest{
-		CourseName:     courseRequest.CourseName,
-		CourseCategory: courseRequest.CourseCategory,
-	}
-	getCourse, err := s.GetCourseByNameAndCategory(getCourseRequest.CourseName, getCourseRequest.CourseCategory)
-
-	if err != nil {
-		return nil, err
-	}
-
-	getALlLesson, err := s.FindLessonByCourseID(getCourse.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	ResponseData := &dto.CourseData{
+	responseData := &dto.CourseData{
 		CoursesName: getCourse.Name,
 		Description: getCourse.Description,
 		CourseID:    getCourse.ID,
-		ListLessons: make([]dto.Lesson, len(getALlLesson)),
+		ListLessons: make([]dto.Lesson, len(getAllLessons)),
 	}
 
-	for i, v := range getALlLesson {
-
-		progressLesson, err := s.ProgressService.GetLessonProgress(userID, v.ID)
-
+	// Iterasi setiap pelajaran untuk mendapatkan detail dan progres
+	for i, lesson := range getAllLessons {
+		progressLesson, err := s.ProgressService.GetLessonProgress(userID, lesson.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		ResponseData.ListLessons[i] = dto.Lesson{
-			IdLesson:    v.ID,
-			LessonsName: v.Name,
-			Description: v.Description,
+		responseData.ListLessons[i] = dto.Lesson{
+			IdLesson:    lesson.ID,
+			LessonsName: lesson.Name,
+			Description: lesson.Description,
 			Progress:    progressLesson.ProgressPercentage,
 		}
 
-		totalCourseProgress = totalCourseProgress + progressLesson.ProgressPercentage
+		totalCourseProgress += progressLesson.ProgressPercentage
 	}
 
-	if len(getALlLesson) != 0 {
-		totalCourseProgress = totalCourseProgress / len(getALlLesson)
-		ResponseData.Progress = totalCourseProgress
+	// Hitung total progres kursus
+	if len(getAllLessons) > 0 {
+		responseData.Progress = totalCourseProgress / len(getAllLessons)
 	}
 
-	return ResponseData, nil
+	// Simpan hasil ke Redis
+	dataToCache, err2 := json.Marshal(responseData)
+	if err2 == nil {
+		redisClient.Set(ctx, cacheKey, dataToCache, 10*time.Minute) // TTL 10 menit
+	}
 
+	return responseData, nil
 }
+
+// func (s *aggregatorService) GetCourseDetailAndProgress(courseRequest *dto.GetContentProgressRequest, userID uuid.UUID) (*dto.CourseData, errs.MessageErr) {
+// 	totalCourseProgress := 0
+// 	getCourseRequest := &courseDTO.CourseRequest{
+// 		CourseName:     courseRequest.CourseName,
+// 		CourseCategory: courseRequest.CourseCategory,
+// 	}
+// 	getCourse, err := s.GetCourseByNameAndCategory(getCourseRequest.CourseName, getCourseRequest.CourseCategory)
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	getALlLesson, err := s.FindLessonByCourseID(getCourse.ID)
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	ResponseData := &dto.CourseData{
+// 		CoursesName: getCourse.Name,
+// 		Description: getCourse.Description,
+// 		CourseID:    getCourse.ID,
+// 		ListLessons: make([]dto.Lesson, len(getALlLesson)),
+// 	}
+
+// 	for i, v := range getALlLesson {
+
+// 		progressLesson, err := s.ProgressService.GetLessonProgress(userID, v.ID)
+
+// 		if err != nil {
+// 			return nil, err
+// 		}
+
+// 		ResponseData.ListLessons[i] = dto.Lesson{
+// 			IdLesson:    v.ID,
+// 			LessonsName: v.Name,
+// 			Description: v.Description,
+// 			Progress:    progressLesson.ProgressPercentage,
+// 		}
+
+// 		totalCourseProgress = totalCourseProgress + progressLesson.ProgressPercentage
+// 	}
+
+// 	if len(getALlLesson) != 0 {
+// 		totalCourseProgress = totalCourseProgress / len(getALlLesson)
+// 		ResponseData.Progress = totalCourseProgress
+// 	}
+
+// 	return ResponseData, nil
+
+// }
 
 // GetExerciseDetail implements AggregateService.
 func (s *aggregatorService) GetExerciseDetail(exerciseID uuid.UUID) (*dto.ExerciseDetail, errs.MessageErr) {
