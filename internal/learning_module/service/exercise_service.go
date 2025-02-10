@@ -30,7 +30,7 @@ func NewExerciseService(exerciseRepo exerciserepository.ExerciseRepository) Exer
 }
 
 func (s *exerciseService) GetExerciseByID(exerciseID uuid.UUID) (*entity.ExercisePart, errs.MessageErr) {
-	// Get exercise by ID
+
 	exercise, err := s.repo.FindByID(exerciseID)
 	if err != nil {
 		return nil, err

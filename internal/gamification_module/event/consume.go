@@ -28,17 +28,12 @@ func ConsumeUserRewardUpdate(db *gorm.DB, topic string, userRewardService servic
 		Topic:   topic,
 		GroupID: "gamification-update-group", // group id for Kafka
 	})
-
 	for {
 		message, err := r.ReadMessage(context.Background())
 		if err != nil {
 			log.Printf("Error reading message: %v\n", err)
 			continue
 		}
-
-		log.Printf("Message received: %s\n", string(message.Value))
-
-		// Extract data from message (assuming it's JSON)
 		var messageData GetMessageFromEvent
 		// Unmarshal message value
 		err = json.Unmarshal(message.Value, &messageData)
@@ -46,20 +41,17 @@ func ConsumeUserRewardUpdate(db *gorm.DB, topic string, userRewardService servic
 			log.Printf("Error unmarshalling message: %v\n", err)
 			continue
 		}
-
 		payload := &dto.CreateUserRewardRequest{
 			UserID:      messageData.UserID,
 			TotalPoints: messageData.Point,
 			TotalExp:    messageData.Exp,
 		}
-
 		// Call CreateLessonProgress to insert into database
 		_, err = userRewardService.UpdateUserReward(payload)
 		if err != nil {
 			log.Printf("Error creating lesson progress: %v\n", err)
 			continue
 		}
-
 		log.Println("Lesson progress created successfully")
 	}
 }

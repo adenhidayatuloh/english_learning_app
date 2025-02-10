@@ -87,14 +87,6 @@ func (s *videoPartService) Update(id uuid.UUID, request dto.VideoPartRequest) (*
 		VideoExp:    request.VideoExp,
 		VideoPoin:   request.VideoPoin,
 	}
-
-	// videoPart.Title = request.Title
-	// videoPart.Description = request.Description
-	// videoPart.URL = request.URL
-	// videoPart.VideoExp = request.VideoExp
-	// videoPart.VideoPoin = request.VideoPoin
-	// videoPart.VideoPoin = request.VideoPoin
-
 	if request.ContentType != "" {
 		objectName := oldvideoPart.URL[strings.LastIndex(oldvideoPart.URL, "/")+1:]
 		err = s.gcsUploader.DeleteFile(objectName)

@@ -28,6 +28,7 @@ func NewLessonHandler(apiGroup *gin.RouterGroup, lessonService service.LessonSer
 	apiGroup.GET("/lesson-parts/search/:search", learningLessonHandler.FullTextSearch)
 
 	apiGroup.PUT("/update_progress_lesson", learningLessonHandler.UpdateLessonProgressEvent)
+	apiGroup.PUT("/update_progress_lesson2", learningLessonHandler.UpdateLessonProgressEvent2)
 
 	// router.POST("/lesson-parts", handler.CreateLesson)
 	// router.GET("/lesson-parts/:id", handler.GetLessonByID)
@@ -139,40 +140,43 @@ func (h *LessonHandler) DeleteLesson(c *gin.Context) {
 }
 
 func (h *LessonHandler) UpdateLessonProgressEvent(c *gin.Context) {
-
-	// lessonIDParam := c.Param("lesson_id")
-	// lessonID, err := uuid.Parse(lessonIDParam)
-	// errParse := errs.NewBadRequest("Invalid lesson ID format")
-	// if err != nil {
-	// 	c.JSON(errParse.StatusCode(), errParse)
-	// 	return
-	// }
-
 	userID, ok := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
-
 	if !ok {
 		newError := errs.NewBadRequest("Failed to get user data")
 		c.JSON(newError.StatusCode(), newError)
 		return
 	}
-
 	var updateLessonDto event.LessonProgressRequest
-
 	if err := c.ShouldBindJSON(&updateLessonDto); err != nil {
 		c.JSON(http.StatusBadRequest, errs.NewUnprocessableEntity(err.Error()))
 		return
 	}
-
 	updateLessonDto.UserID = userID
-	//updateLessonDto.LessonID = lessonID
-
 	err2 := h.LessonService.ProcessLessonEvent(context.Background(), "progressupdate", updateLessonDto)
-
-	// response, err2 := h.progressService.UpdateLessonProgress(&updateLessonDto)
 	if err2 != nil {
 		c.JSON(err2.StatusCode(), err2)
 		return
 	}
+	c.JSON(common.BuildResponse(http.StatusOK, updateLessonDto))
+}
 
+func (h *LessonHandler) UpdateLessonProgressEvent2(c *gin.Context) {
+	userID, ok := c.MustGet("userData").(map[string]interface{})["ID"].(uuid.UUID)
+	if !ok {
+		newError := errs.NewBadRequest("Failed to get user data")
+		c.JSON(newError.StatusCode(), newError)
+		return
+	}
+	var updateLessonDto event.LessonProgressRequest
+	if err := c.ShouldBindJSON(&updateLessonDto); err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewUnprocessableEntity(err.Error()))
+		return
+	}
+	updateLessonDto.UserID = userID
+	err2 := h.LessonService.ProcessLessonEvent2(updateLessonDto)
+	if err2 != nil {
+		c.JSON(err2.StatusCode(), err2)
+		return
+	}
 	c.JSON(common.BuildResponse(http.StatusOK, updateLessonDto))
 }

@@ -27,7 +27,6 @@ func (r *lessonPostgres) FindByCourseID(courseID uuid.UUID) ([]*entity.Lesson, e
 	}
 	return lessons, nil
 
-	//return lessons, nil
 }
 
 func (r *lessonPostgres) FindLessonByID(lessonID uuid.UUID) (*entity.Lesson, errs.MessageErr) {
